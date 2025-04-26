@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>下書き一覧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-color: #2e7d32; /* 落ち着いた緑 */
+      --accent-color: #66bb6a;
+      --bg-gradient: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      --card-bg: #ffffff;
+      --text-color: #333;
+    }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2em;
+      color: var(--main-color);
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    .card h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+    .card p {
+      color: #666;
+      font-size: 0.9em;
+    }
+    .actions {
+      margin-top: 10px;
+    }
+    .actions a {
+      display: inline-block;
+      background: var(--main-color);
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      margin-right: 10px;
+      border-radius: 50px;
+      font-size: 0.9em;
+      transition: background 0.3s;
+    }
+    .actions a:hover {
+      background: var(--accent-color);
+    }
+    nav {
+      text-align: center;
+      margin-top: 30px;
+    }
+    nav a {
+      display: inline-block;
+      background: var(--main-color);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      margin: 0 8px;
+      border-radius: 50px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    nav a:hover {
+      background: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+
+<h1>下書き一覧</h1>
+
+<div id="draftsList"></div>
+
+<nav>
+  <a href="index.html">🏠 トップへ戻る</a>
+  <a href="editor.html">✏️ 新しく書く</a>
+</nav>
+
+<script>
+const draftsList = document.getElementById("draftsList");
+const articles = JSON.parse(localStorage.getItem('articles') || '{}');
+
+// 下書きだけフィルタして表示
+const drafts = Object.values(articles).filter(article => article.status === "draft");
+
+if (drafts.length === 0) {
+  draftsList.innerHTML = "<p style='text-align:center;'>下書きはまだないよ！</p>";
+} else {
+  drafts.sort((a, b) => b.id - a.id).forEach(article => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h2>${article.title}</h2>
+      <p>${article.date}</p>
+      <div class="actions">
+        <a href="editor.html?id=${article.id}">編集する</a>
+      </div>
+    `;
+    draftsList.appendChild(card);
+  });
+}
+</script>
+
+</body>
+</html>

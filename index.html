@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>記事一覧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-color: #2e7d32; /* 落ち着いた緑 */
+      --accent-color: #66bb6a;
+      --bg-gradient: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      --card-bg: #ffffff;
+      --text-color: #333;
+    }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2em;
+      color: var(--main-color);
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    .card h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+    .card p {
+      color: #666;
+      font-size: 0.9em;
+    }
+    .actions {
+      margin-top: 10px;
+    }
+    .actions a {
+      display: inline-block;
+      background: var(--main-color);
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      margin-right: 10px;
+      border-radius: 50px;
+      font-size: 0.9em;
+      transition: background 0.3s;
+    }
+    .actions a:hover {
+      background: var(--accent-color);
+    }
+    nav {
+      text-align: center;
+      margin-top: 30px;
+    }
+    nav a {
+      display: inline-block;
+      background: var(--main-color);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      margin: 0 8px;
+      border-radius: 50px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    nav a:hover {
+      background: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+
+<h1>記事一覧</h1>
+
+<div id="articlesList"></div>
+
+<nav>
+  <a href="editor.html">✏️ 新しく書く</a>
+  <a href="drafts.html">📄 下書き一覧</a>
+</nav>
+
+<script>
+const articlesList = document.getElementById("articlesList");
+const articles = JSON.parse(localStorage.getItem('articles') || '{}');
+
+// 公開済みの記事だけフィルタして表示
+const published = Object.values(articles).filter(article => article.status === "published");
+
+if (published.length === 0) {
+  articlesList.innerHTML = "<p style='text-align:center;'>まだ公開された記事はないよ！</p>";
+} else {
+  published.sort((a, b) => b.id - a.id).forEach(article => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h2>${article.title}</h2>
+      <p>${article.date}</p>
+      <div class="actions">
+        <a href="article.html?id=${article.id}">読む</a>
+      </div>
+    `;
+    articlesList.appendChild(card);
+  });
+}
+</script>
+
+</body>
+</html>
