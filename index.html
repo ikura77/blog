@@ -50,9 +50,12 @@
       transform: translateY(-6px);
       box-shadow: 0 12px 24px rgba(0,0,0,0.15);
     }
-    .card .title-date {
+    .title-date {
       position: relative;
       margin-bottom: 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
     .card h2 {
       font-size: 1.2em;
@@ -62,10 +65,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 2; /* 2行まで */
       -webkit-box-orient: vertical;
+      max-width: calc(100% - 80px); /* 日付分を引く */
     }
-    .card .date {
+    .date {
       position: absolute;
       top: 0;
       right: 0;
@@ -73,14 +77,14 @@
       color: #777;
       white-space: nowrap;
     }
-    .card .content-preview {
+    .content-preview {
       font-size: 0.85em;
       color: #555;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .card .actions a {
+    .actions a {
       position: absolute;
       bottom: 10px;
       right: 15px;
@@ -92,7 +96,7 @@
       font-size: 0.8em;
       transition: background 0.3s;
     }
-    .card .actions a:hover {
+    .actions a:hover {
       background: var(--accent-color);
     }
     nav {
@@ -128,22 +132,25 @@
     #toggleMonthView:hover {
       background: var(--accent-color);
     }
+
+    /* スマホ用調整 */
     @media (max-width: 600px) {
       .card {
-        height: 100px;
+        height: 110px;
         padding: 10px;
       }
       .card h2 {
-        font-size: 0.9em; /* 小さめ */
-        max-width: calc(100% - 60px); /* 日付スペース確保して幅を制限 */
+        font-size: 1.1em;
+        max-width: calc(100% - 70px);
+        -webkit-line-clamp: 2;
       }
-      .card .date {
+      .date {
         font-size: 0.65em;
       }
-      .card .content-preview {
+      .content-preview {
         font-size: 0.75em;
       }
-      .card .actions a {
+      .actions a {
         font-size: 0.7em;
         padding: 5px 10px;
       }
@@ -168,11 +175,11 @@
 function fitTitleInTwoLines(titleText) {
   const temp = document.createElement('h2');
   temp.style.cssText = 'visibility:hidden;position:absolute;width:calc(100% - 80px);font-size:' +
-    (window.innerWidth <= 600 ? '0.9em' : '1.2em') + ';line-height:1.4;';
+    (window.innerWidth <= 600 ? '1.1em' : '1.2em') + ';line-height:1.4;font-family:Noto Sans JP;';
   temp.textContent = titleText;
   document.body.appendChild(temp);
 
-  const oneLineHeight = temp.offsetHeight;
+  const oneLineHeight = temp.offsetHeight / 2; // 2行なので割る
   const maxAllowedHeight = oneLineHeight * 2;
   let fitted = titleText;
 
