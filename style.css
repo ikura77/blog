@@ -1,210 +1,149 @@
-/* ----------------------------------------
-  🌟 基本のカラーテーマ設定
----------------------------------------- */
+/* 🌟 カラーテーマ調整 */
 :root {
-  --main-color: #007acc;
-  --accent-color: #ff6b6b;
-  --bg-color: #f0f4f8;
-  --text-color: #222;
-  --card-bg: linear-gradient(145deg, #ffffff, #f7faff);
-  --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --main-color: #0088cc;
+  --accent-color: #ff6666;
+  --bg-color: #f5f7fa;
+  --text-color: #1e1e1e;
+  --card-bg: linear-gradient(145deg, #ffffff, #e6ecf1);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-/* ダークモード自動対応 */
+/* ダークモード */
 @media (prefers-color-scheme: dark) {
   :root {
-    --main-color: #66ccff;
-    --accent-color: #ff8787;
-    --bg-color: #0d1117;
+    --main-color: #66cfff;
+    --accent-color: #ff7b7b;
+    --bg-color: #161b22;
     --text-color: #ddd;
-    --card-bg: linear-gradient(145deg, #1a1a1a, #2a2a2a);
-    --shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    --card-bg: linear-gradient(145deg, #1c1c1c, #2c2c2c);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
 }
-
-/* 手動でダークテーマを適用 */
 body.dark {
-  --main-color: #66ccff;
-  --accent-color: #ff8787;
-  --bg-color: #0d1117;
+  --main-color: #66cfff;
+  --accent-color: #ff7b7b;
+  --bg-color: #161b22;
   --text-color: #ddd;
-  --card-bg: linear-gradient(145deg, #1a1a1a, #2a2a2a);
-  --shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --card-bg: linear-gradient(145deg, #1c1c1c, #2c2c2c);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-/* ----------------------------------------
-  🌟 ベーススタイル
----------------------------------------- */
+/* 🌟 ベーススタイル強化 */
 body {
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: 'Noto Sans JP', 'Helvetica Neue', sans-serif;
   background: var(--bg-color);
   color: var(--text-color);
-  max-width: 880px;
-  margin: 40px auto;
-  padding: 20px;
-  line-height: 1.8;
-  transition: all 0.4s ease;
+  max-width: 960px;
+  margin: 50px auto;
+  padding: 24px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  transition: all 0.5s ease;
 }
 
-/* 見出しアニメーション */
+/* 見出しアニメーション微修正 */
 h1, h2 {
-  transition: color 0.4s ease;
+  transition: color 0.5s ease;
 }
 
-/* タイトルデザイン */
+/* タイトルデザイン改良 */
 .title {
-  font-size: 2.8rem;
+  font-size: 3rem;
   text-align: center;
   background: linear-gradient(90deg, var(--main-color), var(--accent-color));
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  animation: fadeInDown 1s ease-out forwards;
-  margin-bottom: 30px;
+  animation: fadeInDown 1.2s ease-out forwards;
+  margin-bottom: 40px;
   position: relative;
 }
 
-/* タイトルフェードイン */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* 浮遊感アニメーション改善 */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-6px); }
 }
 
-/* リンクスタイル */
-a {
-  color: var(--main-color);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-a:hover {
-  text-decoration: underline;
-}
-
-/* ----------------------------------------
-  🌟 ナビゲーションバー
----------------------------------------- */
-nav {
-  margin-bottom: 30px;
-}
+/* ナビバー */
 nav ul {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 14px;
-  backdrop-filter: blur(6px);
+  gap: 18px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
   box-shadow: var(--shadow);
-  animation: float 3s ease-in-out infinite alternate;
-  transition: background-color 0.4s ease;
+  animation: float 4s ease-in-out infinite alternate;
 }
 
-/* ダークモード時のナビ背景 */
+/* ダークモード時 */
 body.dark nav ul {
-  background: rgba(20, 20, 20, 0.5);
+  background: rgba(20, 20, 20, 0.6);
 }
 
-/* 浮遊アニメーション */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  100% { transform: translateY(-4px); }
-}
-
-/* ナビゲーションリンク */
+/* ナビリンク */
 nav ul li a {
   font-weight: bold;
   color: var(--text-color);
-  transition: color 0.3s ease;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 nav ul li a:hover {
-  color: var(--main-color);
+  background: var(--main-color);
+  color: #fff;
 }
 
-/* ----------------------------------------
-  🌟 コンテンツ
----------------------------------------- */
-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-/* ブログリスト */
-.blog-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  margin-top: 30px;
-}
-
-/* カードデザイン */
+/* 🌟 カードデザインアップグレード（続きを読む対応） */
 .card {
   background: var(--card-bg);
   border-radius: 20px;
-  padding: 20px;
+  padding: 24px;
   box-shadow: var(--shadow);
-  transition: all 0.4s ease;
+  transition: all 0.5s ease;
   transform-style: preserve-3d;
+  display: flex; /* ★追加 */
+  flex-direction: column; /* ★追加 */
+  justify-content: space-between; /* ★追加 */
+  height: 260px; /* 必要なら高さ指定 */
 }
 .card:hover {
-  transform: translateY(-10px) rotateX(4deg);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-.card h2 {
-  margin-top: 0;
-  font-size: 1.6em;
-}
-.card p {
-  font-size: 1em;
-  color: var(--text-color);
+  transform: translateY(-8px) rotateX(3deg);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* 入力フォーム */
-input[type="text"], select, textarea {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 20px;
-  font-size: 1em;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  background: var(--card-bg);
-  color: var(--text-color);
-  transition: all 0.4s ease;
-}
-input[type="text"]:focus, select:focus, textarea:focus {
-  border-color: var(--main-color);
-  outline: none;
+/* 🌟 カード内アクション（続きを読むボタン用） */
+.card .actions {
+  margin-top: auto; /* ★追加：上から自動で押し下げ */
+  text-align: right; /* ★追加：右寄せ */
 }
 
 /* ボタン */
 button {
   font-size: 1em;
-  padding: 12px 24px;
+  padding: 14px 28px;
   background: var(--main-color);
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 button:hover {
-  background: #005f99;
-  transform: translateY(-2px);
+  background: #0072b2;
+  transform: translateY(-3px);
 }
+
 /* 削除ボタン */
 button.delete {
   background: var(--accent-color);
 }
 button.delete:hover {
-  background: #ff4b4b;
+  background: #e63939;
 }
 
 /* テーマ切替ボタン */
@@ -213,7 +152,7 @@ button.delete:hover {
   background: none;
   border: 1px solid #aaa;
   padding: 8px 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
   position: absolute;
   top: 10px;
@@ -225,32 +164,7 @@ button.delete:hover {
   color: #fff;
 }
 
-/* ----------------------------------------
-  🌟 レスポンシブ対応
----------------------------------------- */
-@media (max-width: 600px) {
-  body {
-    padding: 15px;
-    margin: 20px auto;
-  }
-  .title {
-    font-size: 2.2rem;
-  }
-  nav ul {
-    flex-direction: column;
-    gap: 12px;
-  }
-  .blog-list {
-    grid-template-columns: 1fr;
-  }
-  .card {
-    padding: 16px;
-  }
-}
-
-/* ----------------------------------------
-  🌟 保存完了ポップアップ
----------------------------------------- */
+/* 保存完了ポップアップ */
 #toast {
   position: fixed;
   top: 50%;
@@ -258,7 +172,7 @@ button.delete:hover {
   transform: translate(-50%, -50%);
   background: var(--main-color);
   color: #fff;
-  padding: 14px 24px;
+  padding: 16px 28px;
   border-radius: 30px;
   font-size: 1em;
   box-shadow: var(--shadow);
@@ -266,21 +180,8 @@ button.delete:hover {
   opacity: 0;
   pointer-events: none;
   transition: all 0.5s ease;
-  display: block;
   visibility: hidden;
 }
-
-/* 保存完了・大きいバージョン */
-#toast.big {
-  font-size: 1.4em;
-  padding: 20px 30px;
-  animation: popUp 0.5s ease-out;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* ポップアップ表示 */
 #toast.show {
   opacity: 1;
   pointer-events: auto;
