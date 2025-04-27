@@ -12,6 +12,8 @@
       --bg-gradient: linear-gradient(135deg, #e3f2fd, #bbdefb);
       --card-bg: #ffffff;
       --text-color: #212121;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     body {
       font-family: 'Noto Sans JP', 'Roboto', sans-serif;
@@ -30,15 +32,16 @@
     }
     .card {
       background: var(--card-bg);
-      border-radius: 10px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
       padding: 24px;
       margin-bottom: 24px;
       transition: transform 0.3s, box-shadow 0.3s;
+      border: 1px solid #e0e0e0;
     }
     .card:hover {
       transform: translateY(-6px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
     }
     .card h2 {
       font-size: 1.6em;
@@ -196,11 +199,6 @@
             <div class="actions">
               <a href="article.html?id=${article.id}">読む</a>
             </div>
-            <!-- アフィリエイトリンクを追加 -->
-            <div class="affiliate-link">
-              <p>おすすめ商品:</p>
-              <a href="https://example.com/affiliate-link" target="_blank" style="display: inline-block; background-color: #ff5722; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">今すぐチェック</a>
-            </div>
           `;
           articleContainer.appendChild(card);
         });
@@ -219,11 +217,6 @@
           <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
           <div class="actions">
             <a href="article.html?id=${id}">読む</a>
-          </div>
-          <!-- アフィリエイトリンクを追加 -->
-          <div class="affiliate-link">
-            <p>おすすめ商品:</p>
-            <a href="https://example.com/affiliate-link" target="_blank" style="display: inline-block; background-color: #ff5722; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">今すぐチェック</a>
           </div>
         `;
         articlesList.appendChild(card);
