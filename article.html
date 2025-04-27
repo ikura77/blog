@@ -7,79 +7,97 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --main-color: #2e7d32; /* 落ち着いた緑 */
-      --accent-color: #66bb6a;
-      --bg-gradient: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      --main-color: #2c3e50;
+      --accent-color: #3498db;
+      --bg-gradient: linear-gradient(135deg, #ecf0f1, #bdc3c7);
       --card-bg: #ffffff;
-      --text-color: #333;
-      --danger-color: #e53935; /* 削除ボタンの赤色 */
-      --danger-hover: #c62828;
+      --text-color: #2c3e50;
+      --delete-color: #e53935;
+      --delete-hover: #c62828;
     }
     body {
       font-family: 'Noto Sans JP', sans-serif;
       background: var(--bg-gradient);
       color: var(--text-color);
-      max-width: 800px;
+      max-width: 960px;
       margin: 40px auto;
       padding: 20px;
-      line-height: 1.6;
+      line-height: 1.8;
     }
     article {
       background: var(--card-bg);
       padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
     }
     h1 {
-      font-size: 2em;
-      margin-bottom: 10px;
+      font-size: 2.4em;
+      margin-bottom: 20px;
       color: var(--main-color);
+      text-align: center;
     }
     time {
       display: block;
+      text-align: center;
       margin-bottom: 30px;
-      color: #666;
+      color: #777;
       font-size: 0.9em;
     }
     p {
       margin-bottom: 20px;
+      white-space: pre-wrap;
+      font-size: 1em;
     }
     #buttons {
       text-align: center;
-      margin: 20px 0;
+      margin: 40px 0;
     }
-    #deleteBtn {
-      background: var(--danger-color);
-      color: white;
-      border: none;
-      padding: 10px 20px;
+    #deleteBtn, #editBtn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 24px;
+      margin: 0 10px;
       border-radius: 50px;
       font-weight: bold;
-      font-size: 1.1em;
+      font-size: 1em;
       cursor: pointer;
-      transition: background 0.3s;
-      display: none;
+      transition: background 0.3s, transform 0.2s;
+      border: none;
+      color: white;
+    }
+    #editBtn {
+      background: var(--main-color);
+    }
+    #editBtn:hover {
+      background: var(--accent-color);
+      transform: translateY(-2px);
+    }
+    #deleteBtn {
+      background: var(--delete-color);
     }
     #deleteBtn:hover {
-      background: var(--danger-hover);
+      background: var(--delete-hover);
+      transform: translateY(-2px);
     }
     nav {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 40px;
     }
     nav a {
       display: inline-block;
       background: var(--main-color);
       color: white;
       text-decoration: none;
-      padding: 10px 20px;
+      padding: 12px 24px;
       margin: 0 8px;
       border-radius: 50px;
       font-weight: bold;
-      transition: background 0.3s;
+      font-size: 1em;
+      transition: background 0.3s, transform 0.2s;
     }
     nav a:hover {
       background: var(--accent-color);
+      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -88,7 +106,8 @@
 <article id="articleContent"></article>
 
 <div id="buttons">
-  <button id="deleteBtn">この記事を削除する</button>
+  <a id="editBtn" href="#" style="display:none;">✏️ 編集する</a>
+  <button id="deleteBtn" style="display:none;">🗑️ 削除する</button>
 </div>
 
 <nav>
@@ -98,28 +117,39 @@
 <script>
 const articleContent = document.getElementById("articleContent");
 const deleteBtn = document.getElementById("deleteBtn");
+const editBtn = document.getElementById("editBtn");
 const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 const articles = JSON.parse(localStorage.getItem('articles') || '{}');
 const article = articles[id];
 
+// 日付の整形
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date)) return dateStr;
+  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
 if (article && article.status === "published") {
   articleContent.innerHTML = `
     <h1>${article.title}</h1>
-    <time>公開日: ${article.publishedAt || article.date}</time>
-    <p>${article.content.replace(/\n/g, "<br>")}</p>
+    <time>公開日: ${formatDate(article.datePublished)}</time>
+    <p>${article.content}</p>
   `;
   deleteBtn.style.display = "inline-block";
+  editBtn.href = `editor.html?id=${id}`;
+  editBtn.style.display = "inline-block";
 } else {
-  articleContent.innerHTML = "<p>記事が見つからないか、まだ公開されていないよ。</p>";
+  articleContent.innerHTML = "<p>記事が見つからないか、まだ公開されていません。</p>";
 }
 
 // 削除ボタンの処理
 deleteBtn.addEventListener("click", function() {
-  if (confirm("この記事を本当に削除する？")) {
+  if (confirm("この記事を本当に削除しますか？")) {
     delete articles[id];
     localStorage.setItem('articles', JSON.stringify(articles));
-    alert("削除しました！");
+    alert("記事を削除しました。");
     location.href = "index.html";
   }
 });
