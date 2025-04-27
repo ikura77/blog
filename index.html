@@ -21,9 +21,7 @@
       color: var(--text-color);
       margin: 0;
       padding: 20px;
-      width: 100%;
       max-width: 1200px;
-      box-sizing: border-box;
       margin-left: auto;
       margin-right: auto;
       line-height: 1.8;
@@ -41,13 +39,11 @@
       box-shadow: var(--box-shadow);
       padding: 15px;
       margin-bottom: 20px;
-      transition: transform 0.3s, box-shadow 0.3s;
       border: 1px solid #e0e0e0;
       max-width: 900px;
       margin-left: auto;
       margin-right: auto;
-      height: 140px;
-      overflow: hidden;
+      height: 120px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -57,26 +53,36 @@
       transform: translateY(-6px);
       box-shadow: 0 12px 24px rgba(0,0,0,0.15);
     }
+    .card .title-date {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
     .card h2 {
-      font-size: 1.4em;
+      font-size: 1.2em;
       margin: 0;
       color: var(--main-color);
       line-height: 1.2;
-      margin-bottom: 5px;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .card .date {
-      position: absolute;
-      top: 10px;
-      right: 15px;
       font-size: 0.75em;
       color: #777;
+      white-space: nowrap;
+      margin-left: 10px;
+      flex-shrink: 0;
     }
     .card .content-preview {
-      position: absolute;
-      bottom: 10px;
-      left: 15px;
-      font-size: 0.8em;
+      font-size: 0.85em;
       color: #555;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .card .actions a {
       position: absolute;
@@ -132,17 +138,17 @@
     /* スマホ対応 */
     @media (max-width: 600px) {
       .card {
-        height: 120px;
+        height: 100px;
         padding: 10px;
       }
       .card h2 {
-        font-size: 1.2em;
+        font-size: 1em;
       }
       .card .date {
-        font-size: 0.7em;
+        font-size: 0.65em;
       }
       .card .content-preview {
-        font-size: 0.7em;
+        font-size: 0.75em;
       }
       .card .actions a {
         font-size: 0.7em;
@@ -260,10 +266,13 @@ function renderArticles() {
 function createCard(article) {
   const card = document.createElement("div");
   card.className = "card";
+  const preview = (article.content || article.summary || "本文なし").substring(0, 15) + "…";
   card.innerHTML = `
-    <h2>${article.title}</h2>
-    <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
-    <div class="content-preview">${(article.content || article.summary || "本文なし").substring(0, 10)}</div>
+    <div class="title-date">
+      <h2>${article.title}</h2>
+      <div class="date">${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
+    </div>
+    <div class="content-preview">${preview}</div>
     <div class="actions">
       <a href="article.html?id=${article.id}">続きを読む</a>
     </div>
