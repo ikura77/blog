@@ -19,10 +19,13 @@
       font-family: 'Noto Sans JP', 'Roboto', sans-serif;
       background: var(--bg-gradient);
       color: var(--text-color);
-      margin: 50px auto;
+      margin: 0;
       padding: 20px;
       line-height: 1.8;
-      max-width: 1200px; /* 最大幅を1200pxに設定 */
+      max-width: 1200px;
+      box-sizing: border-box;
+      margin-left: auto;
+      margin-right: auto;
     }
     h1 {
       text-align: center;
@@ -34,16 +37,16 @@
       background: var(--card-bg);
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
-      padding: 15px;
-      margin-bottom: 20px;
+      padding: 15px 15px 60px; /* 下に余白追加 */
+      margin: 20px auto;
       transition: transform 0.3s, box-shadow 0.3s;
       border: 1px solid #e0e0e0;
       width: 100%;
-      max-width: 900px; /* カードの最大幅を設定 */
-      margin-left: auto;
-      margin-right: auto;
-      height: 160px; /* 高さを縮小 */
+      max-width: 900px;
+      height: 160px;
       overflow: hidden;
+      box-sizing: border-box;
+      position: relative; /* 追加！ */
     }
     .card:hover {
       transform: translateY(-6px);
@@ -53,7 +56,10 @@
       font-size: 1.4em;
       margin-bottom: 8px;
       color: var(--main-color);
-      line-height: 1.2;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .card .date {
       color: #777;
@@ -65,14 +71,19 @@
       color: #333;
       margin-bottom: 8px;
       line-height: 1.4;
-      max-height: 40px; /* 本文の表示高さを調整 */
       overflow: hidden;
       text-overflow: ellipsis;
+      max-height: 40px;
+    }
+    .card .actions {
+      position: absolute; /* 追加！ */
+      bottom: 16px;
+      right: 16px;
     }
     .card .actions a {
       display: inline-block;
       background: var(--main-color);
-      color: white;
+      color: #fff;
       text-decoration: none;
       padding: 8px 16px;
       border-radius: 30px;
@@ -95,6 +106,7 @@
       border-radius: 30px;
       font-weight: bold;
       transition: background 0.3s;
+      display: inline-block;
     }
     nav a:hover {
       background: var(--accent-color);
@@ -107,24 +119,35 @@
       border-radius: 30px;
       font-weight: bold;
       cursor: pointer;
-      margin-bottom: 20px;
+      margin: 0 auto 20px;
       display: block;
-      margin-left: auto;
-      margin-right: auto;
       transition: background 0.3s;
     }
     #toggleMonthView:hover {
       background: var(--accent-color);
     }
+    section {
+      margin-top: 40px;
+    }
+    section h2 {
+      font-size: 1.4em;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid var(--accent-color);
+      color: var(--main-color);
+      cursor: pointer;
+      user-select: none;
+    }
   </style>
 </head>
+
 <body>
 
 <h1>記事一覧</h1>
 
 <button id="toggleMonthView">📅 月別で見る</button>
 
-<div id="articlesList"></div>
+<main id="articlesList"></main>
 
 <nav>
   <a href="editor.html">✏️ 新しく書く</a>
@@ -150,6 +173,12 @@
     return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
+  function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, tag => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[tag]));
+  }
+
   function renderArticles() {
     articlesList.innerHTML = "";
 
@@ -171,38 +200,28 @@
       published.forEach(([id, article]) => {
         const baseDate = article.publishedAt || article.datePublished || article.date;
         const month = baseDate ? baseDate.slice(0, 7).replace("/", "-") : "不明";
-        if (!grouped[month]) grouped[month] = [];
-        grouped[month].push({ id, ...article });
+        (grouped[month] ||= []).push({ id, ...article });
       });
 
       const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
       months.forEach(month => {
-        const monthSection = document.createElement("section");
-        monthSection.style.marginTop = "40px";
+        const section = document.createElement("section");
 
-        const monthTitle = document.createElement("h2");
-        monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
-        monthTitle.style.color = "var(--main-color)";
-        monthTitle.style.fontSize = "1.4em";
-        monthTitle.style.borderBottom = "2px solid var(--accent-color)";
-        monthTitle.style.paddingBottom = "5px";
-        monthTitle.style.marginBottom = "10px";
-        monthTitle.style.cursor = "pointer";
+        const h2 = document.createElement("h2");
+        h2.textContent = month.replace("-", "年") + "月の記事 ▶";
+        const container = document.createElement("div");
+        container.style.overflow = "hidden";
+        container.style.maxHeight = "0";
+        container.style.transition = "max-height 0.4s ease";
 
-        const articleContainer = document.createElement("div");
-        articleContainer.style.marginTop = "10px";
-        articleContainer.style.overflow = "hidden";
-        articleContainer.style.maxHeight = "0";
-        articleContainer.style.transition = "max-height 0.4s ease";
-
-        monthTitle.addEventListener("click", () => {
-          if (articleContainer.style.maxHeight === "0px" || articleContainer.style.maxHeight === "0") {
-            articleContainer.style.maxHeight = articleContainer.scrollHeight + "px";
-            monthTitle.textContent = month.replace("-", "年") + "月の記事 ▼";
+        h2.addEventListener("click", () => {
+          if (container.style.maxHeight === "0px" || container.style.maxHeight === "0") {
+            container.style.maxHeight = container.scrollHeight + "px";
+            h2.textContent = month.replace("-", "年") + "月の記事 ▼";
           } else {
-            articleContainer.style.maxHeight = "0";
-            monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
+            container.style.maxHeight = "0";
+            h2.textContent = month.replace("-", "年") + "月の記事 ▶";
           }
         });
 
@@ -210,19 +229,19 @@
           const card = document.createElement("div");
           card.className = "card";
           card.innerHTML = `
-            <h2>${article.title}</h2>
+            <h2>${escapeHTML(article.title || "無題")}</h2>
             <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
-            <p>${article.content ? article.content.substring(0, 20) + '...' : '内容がありません'}</p>
+            <p>${escapeHTML(article.content ? article.content.slice(0, 40) + "..." : "内容がありません")}</p>
             <div class="actions">
-              <a href="article.html?id=${article.id}">続きを読む</a>
+              <a href="article.html?id=${encodeURIComponent(article.id)}">続きを読む</a>
             </div>
           `;
-          articleContainer.appendChild(card);
+          container.appendChild(card);
         });
 
-        monthSection.appendChild(monthTitle);
-        monthSection.appendChild(articleContainer);
-        articlesList.appendChild(monthSection);
+        section.appendChild(h2);
+        section.appendChild(container);
+        articlesList.appendChild(section);
       });
 
     } else {
@@ -230,11 +249,11 @@
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-          <h2>${article.title}</h2>
+          <h2>${escapeHTML(article.title || "無題")}</h2>
           <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
-          <p>${article.content ? article.content.substring(0, 20) + '...' : '内容がありません'}</p>
+          <p>${escapeHTML(article.content ? article.content.slice(0, 40) + "...": "内容がありません")}</p>
           <div class="actions">
-            <a href="article.html?id=${id}">続きを読む</a>
+            <a href="article.html?id=${encodeURIComponent(id)}">続きを読む</a>
           </div>
         `;
         articlesList.appendChild(card);
