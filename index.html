@@ -2,62 +2,61 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>記事一覧</title>
+  <title>記事一覧 - Business Style</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --main-color: #2e7d32; /* 落ち着いた緑 */
-      --accent-color: #66bb6a;
-      --bg-gradient: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      --main-color: #0d47a1;
+      --accent-color: #1976d2;
+      --bg-gradient: linear-gradient(135deg, #e3f2fd, #bbdefb);
       --card-bg: #ffffff;
-      --text-color: #333;
+      --text-color: #212121;
     }
     body {
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Noto Sans JP', 'Roboto', sans-serif;
       background: var(--bg-gradient);
       color: var(--text-color);
-      max-width: 800px;
-      margin: 40px auto;
+      max-width: 900px;
+      margin: 50px auto;
       padding: 20px;
-      line-height: 1.6;
+      line-height: 1.8;
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
-      font-size: 2em;
+      margin-bottom: 30px;
+      font-size: 2.5em;
       color: var(--main-color);
     }
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      padding: 20px;
-      margin-bottom: 20px;
-      transition: transform 0.2s;
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
     .card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
     }
     .card h2 {
-      font-size: 1.5em;
-      margin-bottom: 10px;
+      font-size: 1.6em;
+      margin-bottom: 8px;
+      color: var(--main-color);
     }
-    .card p {
-      color: #666;
-      font-size: 0.9em;
-    }
-    .actions {
-      margin-top: 10px;
+    .card .date {
+      color: #777;
+      font-size: 0.85em;
+      margin-bottom: 16px;
     }
     .actions a {
       display: inline-block;
       background: var(--main-color);
       color: white;
       text-decoration: none;
-      padding: 8px 16px;
-      margin-right: 10px;
-      border-radius: 50px;
+      padding: 10px 18px;
+      border-radius: 30px;
       font-size: 0.9em;
       transition: background 0.3s;
     }
@@ -66,20 +65,36 @@
     }
     nav {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 40px;
     }
     nav a {
-      display: inline-block;
       background: var(--main-color);
       color: white;
       text-decoration: none;
-      padding: 10px 20px;
-      margin: 0 8px;
-      border-radius: 50px;
+      padding: 12px 24px;
+      margin: 0 10px;
+      border-radius: 30px;
       font-weight: bold;
       transition: background 0.3s;
     }
     nav a:hover {
+      background: var(--accent-color);
+    }
+    #toggleMonthView {
+      background: var(--main-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 20px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      transition: background 0.3s;
+    }
+    #toggleMonthView:hover {
       background: var(--accent-color);
     }
   </style>
@@ -87,6 +102,8 @@
 <body>
 
 <h1>記事一覧</h1>
+
+<button id="toggleMonthView">📅 月別で見る</button>
 
 <div id="articlesList"></div>
 
@@ -96,28 +113,125 @@
 </nav>
 
 <script>
-const articlesList = document.getElementById("articlesList");
-const articles = JSON.parse(localStorage.getItem('articles') || '{}');
+  const articlesList = document.getElementById("articlesList");
+  const toggleMonthView = document.getElementById("toggleMonthView");
+  const articles = JSON.parse(localStorage.getItem('articles') || '{}');
+  let monthView = false;
 
-// 公開済みの記事だけフィルタして表示
-const published = Object.values(articles).filter(article => article.status === "published");
-
-if (published.length === 0) {
-  articlesList.innerHTML = "<p style='text-align:center;'>まだ公開された記事はないよ！</p>";
-} else {
-  published.sort((a, b) => b.id - a.id).forEach(article => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <h2>${article.title}</h2>
-      <p>${article.date}</p>
-      <div class="actions">
-        <a href="article.html?id=${article.id}">読む</a>
-      </div>
-    `;
-    articlesList.appendChild(card);
+  toggleMonthView.addEventListener("click", () => {
+    monthView = !monthView;
+    renderArticles();
+    toggleMonthView.textContent = monthView ? "📝 全部の記事を見る" : "📅 月別で見る";
   });
-}
+
+  function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date)) return dateStr.replace(/\//g, ".");
+    return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function renderArticles() {
+    articlesList.innerHTML = "";
+
+    const published = Object.entries(articles)
+      .filter(([id, article]) => article.status === "published" || article.status === "public")
+      .sort((a, b) => {
+        const dateA = new Date(a[1].publishedAt || a[1].datePublished || a[1].date || 0);
+        const dateB = new Date(b[1].publishedAt || b[1].datePublished || b[1].date || 0);
+        return dateB - dateA;
+      });
+
+    if (published.length === 0) {
+      articlesList.innerHTML = "<p style='text-align:center;'>まだ公開された記事はありません。</p>";
+      return;
+    }
+
+    if (monthView) {
+      const grouped = {};
+      published.forEach(([id, article]) => {
+        const baseDate = article.publishedAt || article.datePublished || article.date;
+        const month = baseDate ? baseDate.slice(0, 7).replace("/", "-") : "不明";
+        if (!grouped[month]) grouped[month] = [];
+        grouped[month].push({ id, ...article });
+      });
+
+      const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+      months.forEach(month => {
+        const monthSection = document.createElement("section");
+        monthSection.style.marginTop = "40px";
+
+        const monthTitle = document.createElement("h2");
+        monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
+        monthTitle.style.color = "var(--main-color)";
+        monthTitle.style.fontSize = "1.4em";
+        monthTitle.style.borderBottom = "2px solid var(--accent-color)";
+        monthTitle.style.paddingBottom = "5px";
+        monthTitle.style.marginBottom = "10px";
+        monthTitle.style.cursor = "pointer";
+
+        const articleContainer = document.createElement("div");
+        articleContainer.style.marginTop = "10px";
+        articleContainer.style.overflow = "hidden";
+        articleContainer.style.maxHeight = "0";
+        articleContainer.style.transition = "max-height 0.4s ease";
+
+        monthTitle.addEventListener("click", () => {
+          if (articleContainer.style.maxHeight === "0px" || articleContainer.style.maxHeight === "0") {
+            articleContainer.style.maxHeight = articleContainer.scrollHeight + "px";
+            monthTitle.textContent = month.replace("-", "年") + "月の記事 ▼";
+          } else {
+            articleContainer.style.maxHeight = "0";
+            monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
+          }
+        });
+
+        grouped[month].forEach(article => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h2>${article.title}</h2>
+            <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
+            <div class="actions">
+              <a href="article.html?id=${article.id}">読む</a>
+            </div>
+            <!-- アフィリエイトリンクを追加 -->
+            <div class="affiliate-link">
+              <p>おすすめ商品:</p>
+              <a href="https://example.com/affiliate-link" target="_blank" style="display: inline-block; background-color: #ff5722; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">今すぐチェック</a>
+            </div>
+          `;
+          articleContainer.appendChild(card);
+        });
+
+        monthSection.appendChild(monthTitle);
+        monthSection.appendChild(articleContainer);
+        articlesList.appendChild(monthSection);
+      });
+
+    } else {
+      published.forEach(([id, article]) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h2>${article.title}</h2>
+          <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
+          <div class="actions">
+            <a href="article.html?id=${id}">読む</a>
+          </div>
+          <!-- アフィリエイトリンクを追加 -->
+          <div class="affiliate-link">
+            <p>おすすめ商品:</p>
+            <a href="https://example.com/affiliate-link" target="_blank" style="display: inline-block; background-color: #ff5722; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">今すぐチェック</a>
+          </div>
+        `;
+        articlesList.appendChild(card);
+      });
+    }
+  }
+
+  renderArticles();
 </script>
 
 </body>
