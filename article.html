@@ -7,13 +7,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --main-color: #2c3e50;
-      --accent-color: #3498db;
-      --bg-gradient: linear-gradient(135deg, #ecf0f1, #bdc3c7);
-      --card-bg: #ffffff;
-      --text-color: #2c3e50;
-      --delete-color: #e53935;
-      --delete-hover: #c62828;
+      --main-color: #0d47a1; /* indexと同じダークカラー */
+      --accent-color: #3498db; /* indexと同じ明るい青 */
+      --bg-gradient: linear-gradient(135deg, #ecf0f1, #bbdefb); /* indexと同じグラデーション */
+      --card-bg: #ffffff; /* 白背景 */
+      --text-color: #2c3e50; /* indexと同じダークカラー */
+      --delete-color: #e74c3c; /* 削除ボタンの赤 */
+      --delete-hover: #c0392b; /* 削除ボタンホバーの赤 */
     }
     body {
       font-family: 'Noto Sans JP', sans-serif;
@@ -28,7 +28,7 @@
       background: var(--card-bg);
       padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1); /* 軽いシャドウ */
     }
     h1 {
       font-size: 2.4em;
@@ -40,13 +40,14 @@
       display: block;
       text-align: center;
       margin-bottom: 30px;
-      color: #777;
+      color: #7f8c8d; /* グレー */
       font-size: 0.9em;
     }
     p {
       margin-bottom: 20px;
       white-space: pre-wrap;
       font-size: 1em;
+      color: var(--text-color); /* ダークカラー */
     }
     #buttons {
       text-align: center;
