@@ -7,11 +7,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --main-color: #2e7d32; /* 落ち着いた緑 */
-      --accent-color: #66bb6a;
-      --bg-gradient: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      --main-color: #0d47a1;
+      --accent-color: #1976d2;
+      --bg-gradient: linear-gradient(135deg, #e3f2fd, #bbdefb);
       --card-bg: #ffffff;
-      --text-color: #333;
+      --text-color: #212121;
     }
     body {
       font-family: 'Noto Sans JP', sans-serif;
@@ -39,13 +39,13 @@
       font-size: 1.1em;
       border: 1px solid #ccc;
       border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       background: var(--card-bg);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       transition: box-shadow 0.3s;
       box-sizing: border-box;
     }
     input[type="text"]:focus, textarea:focus, select:focus {
-      box-shadow: 0 4px 14px rgba(46,125,50,0.4);
+      box-shadow: 0 4px 14px rgba(13,71,161,0.4);
       outline: none;
     }
     button {
@@ -64,11 +64,11 @@
       background: var(--accent-color);
     }
     #deleteBtn {
-      background: #e74c3c;
+      background: #e53935;
       margin-top: -10px;
     }
     #deleteBtn:hover {
-      background: #c0392b;
+      background: #c62828;
     }
     nav {
       text-align: center;
@@ -88,6 +88,12 @@
     nav a:hover {
       background: var(--accent-color);
     }
+    #dateInfo {
+      text-align: center;
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -105,6 +111,8 @@
   <button type="button" id="deleteBtn" style="display: none;">削除する</button>
 </form>
 
+<p id="dateInfo"></p>
+
 <nav>
   <a href="index.html">🏠 トップへ戻る</a>
   <a href="drafts.html">📄 下書き一覧</a>
@@ -117,11 +125,19 @@ const contentInput = document.getElementById("content");
 const statusSelect = document.getElementById("status");
 const saveBtn = document.getElementById("saveBtn");
 const deleteBtn = document.getElementById("deleteBtn");
+const dateInfo = document.getElementById("dateInfo");
 
 const urlParams = new URLSearchParams(window.location.search);
 const editId = urlParams.get('id');
 
 let articles = JSON.parse(localStorage.getItem('articles') || '{}');
+
+// 日付を日本語表示に変換する関数
+function formatDate(dateStr) {
+  if (!dateStr) return "不明";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+}
 
 // 編集モードならデータをセット
 if (editId && articles[editId]) {
@@ -130,6 +146,10 @@ if (editId && articles[editId]) {
   contentInput.value = article.content;
   statusSelect.value = article.status || "draft";
   deleteBtn.style.display = "block";
+
+  if (dateInfo) {
+    dateInfo.innerHTML = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
+  }
 }
 
 // 保存
@@ -143,10 +163,17 @@ form.addEventListener("submit", function(e) {
     return;
   }
 
-  const id = editId || Date.now().toString();
-  const date = new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+  const now = new Date();
+  const dateStr = now.toISOString(); // ISO形式で保存する
 
-  articles[id] = { id, title, content, date, status };
+  const id = editId || Date.now().toString();
+  const oldArticle = articles[id] || {};
+
+  // 新規なら datePublished を今の時間に設定、既存ならそのまま
+  const datePublished = oldArticle.datePublished || dateStr;
+  const dateUpdated = dateStr; // 保存のたびに更新日だけは更新
+
+  articles[id] = { id, title, content, datePublished, dateUpdated, status };
   localStorage.setItem('articles', JSON.stringify(articles));
 
   alert("保存しました！");
