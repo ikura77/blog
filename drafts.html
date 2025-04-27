@@ -7,58 +7,68 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --main-color: #2e7d32; /* 落ち着いた緑 */
-      --accent-color: #66bb6a;
-      --bg-gradient: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      --main-color: #2c3e50;
+      --accent-color: #3498db;
+      --bg-gradient: linear-gradient(135deg, #ecf0f1, #bdc3c7);
       --card-bg: #ffffff;
-      --text-color: #333;
+      --text-color: #2c3e50;
     }
     body {
       font-family: 'Noto Sans JP', sans-serif;
       background: var(--bg-gradient);
       color: var(--text-color);
-      max-width: 800px;
+      max-width: 960px;
       margin: 40px auto;
       padding: 20px;
-      line-height: 1.6;
+      line-height: 1.8;
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
-      font-size: 2em;
+      margin-bottom: 30px;
+      font-size: 2.4em;
       color: var(--main-color);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
     }
     .card {
       background: var(--card-bg);
       border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      padding: 20px;
-      margin-bottom: 20px;
-      transition: transform 0.2s;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
     .card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-6px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
     }
     .card h2 {
-      font-size: 1.5em;
+      font-size: 1.4em;
       margin-bottom: 10px;
+      color: var(--main-color);
     }
     .card p {
-      color: #666;
       font-size: 0.9em;
+      color: #666;
     }
     .actions {
-      margin-top: 10px;
+      margin-top: 16px;
     }
     .actions a {
       display: inline-block;
       background: var(--main-color);
       color: white;
       text-decoration: none;
-      padding: 8px 16px;
-      margin-right: 10px;
+      padding: 10px 18px;
+      margin-top: 8px;
       border-radius: 50px;
       font-size: 0.9em;
+      font-weight: bold;
       transition: background 0.3s;
     }
     .actions a:hover {
@@ -66,21 +76,28 @@
     }
     nav {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 50px;
     }
     nav a {
       display: inline-block;
       background: var(--main-color);
       color: white;
       text-decoration: none;
-      padding: 10px 20px;
-      margin: 0 8px;
+      padding: 12px 24px;
+      margin: 0 10px;
       border-radius: 50px;
       font-weight: bold;
+      font-size: 1em;
       transition: background 0.3s;
     }
     nav a:hover {
       background: var(--accent-color);
+    }
+    #emptyMessage {
+      text-align: center;
+      font-size: 1.2em;
+      color: #777;
+      margin-top: 80px;
     }
   </style>
 </head>
@@ -88,10 +105,10 @@
 
 <h1>下書き一覧</h1>
 
-<div id="draftsList"></div>
+<div id="draftsList" class="cards"></div>
 
 <nav>
-  <a href="index.html">🏠 トップへ戻る</a>
+  <a href="index.html">🏠 トップへ</a>
   <a href="editor.html">✏️ 新しく書く</a>
 </nav>
 
@@ -99,18 +116,20 @@
 const draftsList = document.getElementById("draftsList");
 const articles = JSON.parse(localStorage.getItem('articles') || '{}');
 
-// 下書きだけフィルタして表示
+// 下書きだけ抽出
 const drafts = Object.values(articles).filter(article => article.status === "draft");
 
 if (drafts.length === 0) {
-  draftsList.innerHTML = "<p style='text-align:center;'>下書きはまだないよ！</p>";
+  draftsList.innerHTML = "<div id='emptyMessage'>現在、下書きはありません。</div>";
 } else {
   drafts.sort((a, b) => b.id - a.id).forEach(article => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <h2>${article.title}</h2>
-      <p>${article.date}</p>
+      <div>
+        <h2>${article.title}</h2>
+        <p>作成日: ${article.date ? article.date : '未設定'}</p>
+      </div>
       <div class="actions">
         <a href="editor.html?id=${article.id}">編集する</a>
       </div>
