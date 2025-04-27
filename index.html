@@ -37,53 +37,62 @@
       background: var(--card-bg);
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
-      padding: 15px;
-      margin: 15px auto;
+      padding: 15px 15px 50px;
+      margin: 20px auto;
       transition: transform 0.3s, box-shadow 0.3s;
       border: 1px solid #e0e0e0;
       width: 100%;
       max-width: 900px;
-      min-height: auto;
+      min-height: 100px; /* ←最小高さも小さくした */
       overflow: hidden;
       box-sizing: border-box;
       position: relative;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
     }
     .card:hover {
       transform: translateY(-6px);
       box-shadow: 0 12px 24px rgba(0,0,0,0.15);
     }
-    .card h2 {
-      font-size: 1.2em;
-      margin-bottom: 6px;
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .card-header h2 {
+      font-size: 1.4em;
+      margin: 0;
       color: var(--main-color);
-      line-height: 1.3;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .card .date {
-      color: #777;
+    .card-header .date {
       font-size: 0.8em;
-      margin-bottom: 6px;
+      color: #777;
+      margin-left: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .card p {
-      font-size: 0.9em;
+      font-size: 1em;
       color: #333;
       margin-bottom: 8px;
-      line-height: 1.2;
+      line-height: 1.4;
       overflow: hidden;
       display: -webkit-box;
-      display: box; /* 標準仕様用に追加 */
-      -webkit-line-clamp: 1; /* 本文1行だけ表示 */
+      display: box; /* 標準仕様 */
+      -webkit-line-clamp: 1; /* 1行にする */
       line-clamp: 1;
       -webkit-box-orient: vertical;
       box-orient: vertical;
     }
     .card .actions {
-      margin-top: auto;
-      text-align: right;
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
     }
     .card .actions a {
       display: inline-block;
@@ -204,70 +213,21 @@
       return;
     }
 
-    if (monthView) {
-      const grouped = {};
-      published.forEach(([id, article]) => {
-        const baseDate = article.publishedAt || article.datePublished || article.date;
-        const month = baseDate ? baseDate.slice(0, 7).replace("/", "-") : "不明";
-        (grouped[month] ||= []).push({ id, ...article });
-      });
-
-      const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
-
-      months.forEach(month => {
-        const section = document.createElement("section");
-
-        const h2 = document.createElement("h2");
-        h2.textContent = month.replace("-", "年") + "月の記事 ▶";
-        const container = document.createElement("div");
-        container.style.overflow = "hidden";
-        container.style.maxHeight = "0";
-        container.style.transition = "max-height 0.4s ease";
-
-        h2.addEventListener("click", () => {
-          if (container.style.maxHeight === "0px" || container.style.maxHeight === "0") {
-            container.style.maxHeight = container.scrollHeight + "px";
-            h2.textContent = month.replace("-", "年") + "月の記事 ▼";
-          } else {
-            container.style.maxHeight = "0";
-            h2.textContent = month.replace("-", "年") + "月の記事 ▶";
-          }
-        });
-
-        grouped[month].forEach(article => {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `
-            <h2>${escapeHTML(article.title || "無題")}</h2>
-            <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
-            <p>${escapeHTML(article.content ? article.content.slice(0, 100) : "内容がありません")}</p>
-            <div class="actions">
-              <a href="article.html?id=${encodeURIComponent(article.id)}">続きを読む</a>
-            </div>
-          `;
-          container.appendChild(card);
-        });
-
-        section.appendChild(h2);
-        section.appendChild(container);
-        articlesList.appendChild(section);
-      });
-
-    } else {
-      published.forEach(([id, article]) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
+    published.forEach(([id, article]) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-header">
           <h2>${escapeHTML(article.title || "無題")}</h2>
-          <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
-          <p>${escapeHTML(article.content ? article.content.slice(0, 100) : "内容がありません")}</p>
-          <div class="actions">
-            <a href="article.html?id=${encodeURIComponent(id)}">続きを読む</a>
-          </div>
-        `;
-        articlesList.appendChild(card);
-      });
-    }
+          <div class="date">${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
+        </div>
+        <p>${escapeHTML(article.content ? article.content.slice(0, 100) : "内容がありません")}</p>
+        <div class="actions">
+          <a href="article.html?id=${encodeURIComponent(id)}">続きを読む</a>
+        </div>
+      `;
+      articlesList.appendChild(card);
+    });
   }
 
   renderArticles();
