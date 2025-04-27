@@ -6,25 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* --- カラーテーマ、全体スタイル --- */
     :root {
       --main-color: #0d47a1;
       --accent-color: #1976d2;
       --bg-gradient: linear-gradient(135deg, #e3f2fd, #bbdefb);
-      --card-bg: #ffffff;
+      --card-bg: #fff;
       --text-color: #212121;
       --border-radius: 8px;
       --box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     body {
-      font-family: 'Noto Sans JP', 'Roboto', sans-serif;
+      font-family: 'Noto Sans JP', sans-serif;
       background: var(--bg-gradient);
       color: var(--text-color);
-      margin: 0;
+      margin: 0 auto;
       padding: 20px;
       max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
       line-height: 1.8;
     }
     h1 {
@@ -33,23 +30,20 @@
       font-size: 2.5em;
       color: var(--main-color);
     }
-    /* --- カードスタイル --- */
     .card {
       position: relative;
       background: var(--card-bg);
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
       padding: 15px;
-      margin-bottom: 20px;
-      border: 1px solid #e0e0e0;
+      margin: 0 auto 20px;
       max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
       height: 120px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      border: 1px solid #e0e0e0;
       transition: transform 0.3s, box-shadow 0.3s;
     }
     .card:hover {
@@ -91,7 +85,7 @@
       bottom: 10px;
       right: 15px;
       background: var(--main-color);
-      color: white;
+      color: #fff;
       text-decoration: none;
       padding: 6px 12px;
       border-radius: 30px;
@@ -101,44 +95,39 @@
     .card .actions a:hover {
       background: var(--accent-color);
     }
-    /* --- ナビゲーション --- */
     nav {
       text-align: center;
       margin-top: 40px;
     }
     nav a {
       background: var(--main-color);
-      color: white;
+      color: #fff;
       text-decoration: none;
       padding: 12px 24px;
       margin: 0 10px;
       border-radius: 30px;
       font-weight: bold;
-      transition: background 0.3s;
       display: inline-block;
+      transition: background 0.3s;
     }
     nav a:hover {
       background: var(--accent-color);
     }
-    /* --- ボタン --- */
     #toggleMonthView {
       background: var(--main-color);
-      color: white;
+      color: #fff;
       border: none;
       padding: 10px 20px;
       border-radius: 30px;
       font-weight: bold;
       cursor: pointer;
-      margin-bottom: 20px;
+      margin: 0 auto 20px;
       display: block;
-      margin-left: auto;
-      margin-right: auto;
       transition: background 0.3s;
     }
     #toggleMonthView:hover {
       background: var(--accent-color);
     }
-    /* --- スマホ対応 --- */
     @media (max-width: 600px) {
       .card {
         height: 100px;
@@ -175,35 +164,26 @@
 </nav>
 
 <script>
-/* --- タイトルを2行以内に整える --- */
 function fitTitleInTwoLines(titleText) {
   const temp = document.createElement('h2');
-  temp.style.visibility = 'hidden';
-  temp.style.position = 'absolute';
-  temp.style.top = '-9999px';
-  temp.style.left = '-9999px';
-  temp.style.width = 'calc(100% - 80px)';
-  temp.style.fontSize = window.innerWidth <= 600 ? '1em' : '1.2em';
-  temp.style.lineHeight = '1.4';
+  temp.style.cssText = 'visibility:hidden;position:absolute;width:calc(100% - 80px);font-size:' +
+    (window.innerWidth <= 600 ? '1em' : '1.2em') + ';line-height:1.4;';
   temp.textContent = titleText;
   document.body.appendChild(temp);
 
   const oneLineHeight = temp.offsetHeight;
   const maxAllowedHeight = oneLineHeight * 2;
   let fitted = titleText;
-  let extraCut = window.innerWidth <= 600 ? 1 : 0;
 
-  while ((temp.offsetHeight > maxAllowedHeight || extraCut > 0) && fitted.length > 0) {
+  while (temp.offsetHeight > maxAllowedHeight && fitted.length > 0) {
     fitted = fitted.slice(0, -1);
     temp.textContent = fitted + '…';
-    if (extraCut > 0) extraCut--;
   }
 
   document.body.removeChild(temp);
   return fitted.length < titleText.length ? fitted + '…' : fitted;
 }
 
-/* --- 記事一覧の表示 --- */
 const articlesList = document.getElementById("articlesList");
 const toggleMonthView = document.getElementById("toggleMonthView");
 const articles = JSON.parse(localStorage.getItem('articles') || '{}');
@@ -218,20 +198,33 @@ toggleMonthView.addEventListener("click", () => {
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
-  if (isNaN(date)) return dateStr.replace(/\//g, ".");
-  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  return isNaN(date) ? dateStr.replace(/\//g, ".") : date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function createCard(article) {
+  const card = document.createElement("div");
+  card.className = "card";
+  const preview = (article.content || article.summary || "本文なし").replace(/\s+/g, '').slice(0, 15) + "…";
+
+  card.innerHTML = `
+    <div class="title-date">
+      <h2>${fitTitleInTwoLines(article.title)}</h2>
+      <div class="date">${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
+    </div>
+    <div class="content-preview">${preview}</div>
+    <div class="actions">
+      <a href="article.html?id=${article.id}">続きを読む</a>
+    </div>
+  `;
+  return card;
 }
 
 function renderArticles() {
   articlesList.innerHTML = "";
 
   const published = Object.entries(articles)
-    .filter(([id, article]) => article.status === "published" || article.status === "public")
-    .sort((a, b) => {
-      const dateA = new Date(a[1].publishedAt || a[1].datePublished || a[1].date || 0);
-      const dateB = new Date(b[1].publishedAt || b[1].datePublished || b[1].date || 0);
-      return dateB - dateA;
-    });
+    .filter(([_, article]) => article.status === "published" || article.status === "public")
+    .sort((a, b) => new Date(b[1].publishedAt || b[1].datePublished || b[1].date) - new Date(a[1].publishedAt || a[1].datePublished || a[1].date));
 
   if (published.length === 0) {
     articlesList.innerHTML = "<p style='text-align:center;'>まだ公開された記事はありません。</p>";
@@ -247,72 +240,33 @@ function renderArticles() {
       grouped[month].push({ id, ...article });
     });
 
-    const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
-    months.forEach(month => {
+    Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(month => {
       const monthSection = document.createElement("section");
       monthSection.style.marginTop = "40px";
 
       const monthTitle = document.createElement("h2");
       monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
-      monthTitle.style.color = "var(--main-color)";
-      monthTitle.style.fontSize = "1.4em";
-      monthTitle.style.borderBottom = "2px solid var(--accent-color)";
-      monthTitle.style.paddingBottom = "5px";
-      monthTitle.style.marginBottom = "10px";
-      monthTitle.style.cursor = "pointer";
+      monthTitle.style.cssText = "color:var(--main-color);font-size:1.4em;border-bottom:2px solid var(--accent-color);padding-bottom:5px;margin-bottom:10px;cursor:pointer;";
 
       const articleContainer = document.createElement("div");
-      articleContainer.style.marginTop = "10px";
-      articleContainer.style.overflow = "hidden";
-      articleContainer.style.maxHeight = "0";
-      articleContainer.style.transition = "max-height 0.4s ease";
+      articleContainer.style.cssText = "overflow:hidden;max-height:0;transition:max-height 0.4s ease;margin-top:10px;";
 
       monthTitle.addEventListener("click", () => {
-        if (articleContainer.style.maxHeight === "0px" || articleContainer.style.maxHeight === "0") {
-          articleContainer.style.maxHeight = articleContainer.scrollHeight + "px";
-          monthTitle.textContent = month.replace("-", "年") + "月の記事 ▼";
-        } else {
-          articleContainer.style.maxHeight = "0";
-          monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
-        }
+        const open = articleContainer.style.maxHeight !== "0px" && articleContainer.style.maxHeight !== "0";
+        articleContainer.style.maxHeight = open ? "0" : articleContainer.scrollHeight + "px";
+        monthTitle.textContent = month.replace("-", "年") + "月の記事 " + (open ? "▶" : "▼");
       });
 
-      grouped[month].forEach(article => {
-        const card = createCard(article);
-        articleContainer.appendChild(card);
-      });
-
-      monthSection.appendChild(monthTitle);
-      monthSection.appendChild(articleContainer);
+      grouped[month].forEach(article => articleContainer.appendChild(createCard(article)));
+      monthSection.append(monthTitle, articleContainer);
       articlesList.appendChild(monthSection);
     });
 
   } else {
-    published.forEach(([id, article]) => {
-      const card = createCard(article);
-      articlesList.appendChild(card);
-    });
+    published.forEach(([id, article]) => articlesList.appendChild(createCard(article)));
   }
 }
 
-function createCard(article) {
-  const card = document.createElement("div");
-  card.className = "card";
-  const preview = (article.content || article.summary || "本文なし").replace(/\s+/g, '').slice(0, 15) + "…";
-  card.innerHTML = `
-    <div class="title-date">
-      <h2>${fitTitleInTwoLines(article.title)}</h2>
-      <div class="date">${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
-    </div>
-    <div class="content-preview">${preview}</div>
-    <div class="actions">
-      <a href="article.html?id=${article.id}">続きを読む</a>
-    </div>
-  `;
-  return card;
-}
-
-/* --- 最初に実行 --- */
 renderArticles();
 </script>
 
