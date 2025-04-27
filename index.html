@@ -48,6 +48,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
     .card:hover {
       transform: translateY(-6px);
@@ -172,14 +173,14 @@
 </nav>
 
 <script>
-// 追加：タイトルを2行以内に収める関数
+// タイトルを2行以内に収める＋スマホ時はさらに1文字短く
 function fitTitleInTwoLines(titleText) {
   const temp = document.createElement('h2');
   temp.style.visibility = 'hidden';
   temp.style.position = 'absolute';
   temp.style.top = '-9999px';
   temp.style.left = '-9999px';
-  temp.style.width = 'calc(100% - 80px)'; // 日付分を差し引いて計算
+  temp.style.width = 'calc(100% - 80px)';
   temp.style.fontSize = window.innerWidth <= 600 ? '1em' : '1.2em';
   temp.style.fontWeight = 'bold';
   temp.style.lineHeight = '1.4';
@@ -193,9 +194,12 @@ function fitTitleInTwoLines(titleText) {
   const maxAllowedHeight = oneLineHeight * 2;
 
   let fitted = titleText;
-  while (temp.offsetHeight > maxAllowedHeight && fitted.length > 0) {
+  let extraCut = window.innerWidth <= 600 ? 1 : 0; // スマホならさらに1文字短く
+
+  while ((temp.offsetHeight > maxAllowedHeight || extraCut > 0) && fitted.length > 0) {
     fitted = fitted.slice(0, -1);
     temp.textContent = fitted + '…';
+    if (extraCut > 0) extraCut--;
   }
 
   document.body.removeChild(temp);
