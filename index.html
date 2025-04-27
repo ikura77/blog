@@ -225,7 +225,7 @@ function formatDate(dateStr) {
 function createCard(article) {
   const card = document.createElement("div");
   card.className = "card";
-  const preview = (article.content || article.summary || "本文なし").replace(/\s+/g, '').slice(0, 15) + "…";
+  const preview = (article.content || article.summary || "本文なし").replace(/\s+/g, '').slice(0, 14) + "…";
 
   card.innerHTML = `
     <div class="title-date">
