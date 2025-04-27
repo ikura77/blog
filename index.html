@@ -21,11 +21,12 @@
       color: var(--text-color);
       margin: 0;
       padding: 20px;
-      line-height: 1.8;
+      width: 100%;
       max-width: 1200px;
       box-sizing: border-box;
       margin-left: auto;
       margin-right: auto;
+      line-height: 1.8;
     }
     h1 {
       text-align: center;
@@ -34,19 +35,20 @@
       color: var(--main-color);
     }
     .card {
+      position: relative;
       background: var(--card-bg);
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
-      padding: 15px 15px 50px;
-      margin: 20px auto;
+      padding: 15px;
+      margin-bottom: 20px;
       transition: transform 0.3s, box-shadow 0.3s;
       border: 1px solid #e0e0e0;
-      width: 100%;
       max-width: 900px;
-      min-height: 100px;
+      margin-left: auto;
+      margin-right: auto;
+      height: 140px;
       overflow: hidden;
       box-sizing: border-box;
-      position: relative;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -55,55 +57,37 @@
       transform: translateY(-6px);
       box-shadow: 0 12px 24px rgba(0,0,0,0.15);
     }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-      gap: 10px;
-    }
-    .card-header h2 {
-      font-size: 1.5em;
+    .card h2 {
+      font-size: 1.4em;
       margin: 0;
       color: var(--main-color);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      line-height: 1.4;
+      line-height: 1.2;
+      margin-bottom: 5px;
     }
-    .card-header .date {
+    .card .date {
+      position: absolute;
+      top: 10px;
+      right: 15px;
       font-size: 0.75em;
       color: #777;
-      margin-top: 2px;
-      flex-shrink: 0;
-      text-align: right;
-      white-space: nowrap;
     }
-    .card p {
-      font-size: 1em;
-      color: #333;
-      margin-bottom: 8px;
-      line-height: 1.4;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-    }
-    .card .actions {
+    .card .content-preview {
       position: absolute;
-      bottom: 16px;
-      right: 16px;
+      bottom: 10px;
+      left: 15px;
+      font-size: 0.8em;
+      color: #555;
     }
     .card .actions a {
-      display: inline-block;
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
       background: var(--main-color);
-      color: #fff;
+      color: white;
       text-decoration: none;
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 30px;
-      font-size: 0.9em;
+      font-size: 0.8em;
       transition: background 0.3s;
     }
     .card .actions a:hover {
@@ -112,21 +96,17 @@
     nav {
       text-align: center;
       margin-top: 40px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
     }
     nav a {
       background: var(--main-color);
       color: white;
       text-decoration: none;
       padding: 12px 24px;
+      margin: 0 10px;
       border-radius: 30px;
       font-weight: bold;
       transition: background 0.3s;
       display: inline-block;
-      white-space: nowrap;
     }
     nav a:hover {
       background: var(--accent-color);
@@ -139,51 +119,45 @@
       border-radius: 30px;
       font-weight: bold;
       cursor: pointer;
-      margin: 0 auto 20px;
+      margin-bottom: 20px;
       display: block;
+      margin-left: auto;
+      margin-right: auto;
       transition: background 0.3s;
     }
     #toggleMonthView:hover {
       background: var(--accent-color);
     }
-    section {
-      margin-top: 40px;
-    }
-    section h2 {
-      font-size: 1.4em;
-      margin-bottom: 10px;
-      padding-bottom: 5px;
-      border-bottom: 2px solid var(--accent-color);
-      color: var(--main-color);
-      cursor: pointer;
-      user-select: none;
-    }
+
     /* スマホ対応 */
     @media (max-width: 600px) {
       .card {
-        padding: 15px 15px 40px;
+        height: 120px;
+        padding: 10px;
       }
-      .card p {
-        display: none;
-      }
-      .card-header h2 {
+      .card h2 {
         font-size: 1.2em;
-        -webkit-line-clamp: 2;
       }
-      .card-header .date {
+      .card .date {
         font-size: 0.7em;
+      }
+      .card .content-preview {
+        font-size: 0.7em;
+      }
+      .card .actions a {
+        font-size: 0.7em;
+        padding: 5px 10px;
       }
     }
   </style>
 </head>
-
 <body>
 
 <h1>記事一覧</h1>
 
 <button id="toggleMonthView">📅 月別で見る</button>
 
-<main id="articlesList"></main>
+<div id="articlesList"></div>
 
 <nav>
   <a href="editor.html">✏️ 新しく書く</a>
@@ -191,64 +165,113 @@
 </nav>
 
 <script>
-  const articlesList = document.getElementById("articlesList");
-  const toggleMonthView = document.getElementById("toggleMonthView");
-  const articles = JSON.parse(localStorage.getItem('articles') || '{}');
-  let monthView = false;
+const articlesList = document.getElementById("articlesList");
+const toggleMonthView = document.getElementById("toggleMonthView");
+const articles = JSON.parse(localStorage.getItem('articles') || '{}');
+let monthView = false;
 
-  toggleMonthView.addEventListener("click", () => {
-    monthView = !monthView;
-    renderArticles();
-    toggleMonthView.textContent = monthView ? "📝 全部の記事を見る" : "📅 月別で見る";
-  });
+toggleMonthView.addEventListener("click", () => {
+  monthView = !monthView;
+  renderArticles();
+  toggleMonthView.textContent = monthView ? "📝 全部の記事を見る" : "📅 月別で見る";
+});
 
-  function formatDate(dateStr) {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    if (isNaN(date)) return dateStr.replace(/\//g, ".");
-    return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date)) return dateStr.replace(/\//g, ".");
+  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function renderArticles() {
+  articlesList.innerHTML = "";
+
+  const published = Object.entries(articles)
+    .filter(([id, article]) => article.status === "published" || article.status === "public")
+    .sort((a, b) => {
+      const dateA = new Date(a[1].publishedAt || a[1].datePublished || a[1].date || 0);
+      const dateB = new Date(b[1].publishedAt || b[1].datePublished || b[1].date || 0);
+      return dateB - dateA;
+    });
+
+  if (published.length === 0) {
+    articlesList.innerHTML = "<p style='text-align:center;'>まだ公開された記事はありません。</p>";
+    return;
   }
 
-  function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, tag => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[tag]));
-  }
+  if (monthView) {
+    const grouped = {};
+    published.forEach(([id, article]) => {
+      const baseDate = article.publishedAt || article.datePublished || article.date;
+      const month = baseDate ? baseDate.slice(0, 7).replace("/", "-") : "不明";
+      if (!grouped[month]) grouped[month] = [];
+      grouped[month].push({ id, ...article });
+    });
 
-  function renderArticles() {
-    articlesList.innerHTML = "";
+    const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    const published = Object.entries(articles)
-      .filter(([id, article]) => article.status === "published" || article.status === "public")
-      .sort((a, b) => {
-        const dateA = new Date(a[1].publishedAt || a[1].datePublished || a[1].date || 0);
-        const dateB = new Date(b[1].publishedAt || b[1].datePublished || b[1].date || 0);
-        return dateB - dateA;
+    months.forEach(month => {
+      const monthSection = document.createElement("section");
+      monthSection.style.marginTop = "40px";
+
+      const monthTitle = document.createElement("h2");
+      monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
+      monthTitle.style.color = "var(--main-color)";
+      monthTitle.style.fontSize = "1.4em";
+      monthTitle.style.borderBottom = "2px solid var(--accent-color)";
+      monthTitle.style.paddingBottom = "5px";
+      monthTitle.style.marginBottom = "10px";
+      monthTitle.style.cursor = "pointer";
+
+      const articleContainer = document.createElement("div");
+      articleContainer.style.marginTop = "10px";
+      articleContainer.style.overflow = "hidden";
+      articleContainer.style.maxHeight = "0";
+      articleContainer.style.transition = "max-height 0.4s ease";
+
+      monthTitle.addEventListener("click", () => {
+        if (articleContainer.style.maxHeight === "0px" || articleContainer.style.maxHeight === "0") {
+          articleContainer.style.maxHeight = articleContainer.scrollHeight + "px";
+          monthTitle.textContent = month.replace("-", "年") + "月の記事 ▼";
+        } else {
+          articleContainer.style.maxHeight = "0";
+          monthTitle.textContent = month.replace("-", "年") + "月の記事 ▶";
+        }
       });
 
-    if (published.length === 0) {
-      articlesList.innerHTML = "<p style='text-align:center;'>まだ公開された記事はありません。</p>";
-      return;
-    }
+      grouped[month].forEach(article => {
+        const card = createCard(article);
+        articleContainer.appendChild(card);
+      });
 
+      monthSection.appendChild(monthTitle);
+      monthSection.appendChild(articleContainer);
+      articlesList.appendChild(monthSection);
+    });
+
+  } else {
     published.forEach(([id, article]) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="card-header">
-          <h2>${escapeHTML(article.title || "無題")}</h2>
-          <div class="date">${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
-        </div>
-        <p>${escapeHTML(article.content ? article.content.slice(0, 100) : "内容がありません")}</p>
-        <div class="actions">
-          <a href="article.html?id=${encodeURIComponent(id)}">続きを読む</a>
-        </div>
-      `;
+      const card = createCard(article);
       articlesList.appendChild(card);
     });
   }
+}
 
-  renderArticles();
+function createCard(article) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <h2>${article.title}</h2>
+    <div class="date">公開日: ${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
+    <div class="content-preview">${(article.content || article.summary || "本文なし").substring(0, 10)}</div>
+    <div class="actions">
+      <a href="article.html?id=${article.id}">続きを読む</a>
+    </div>
+  `;
+  return card;
+}
+
+renderArticles();
 </script>
 
 </body>
