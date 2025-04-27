@@ -136,7 +136,6 @@
     #toggleMonthView:hover {
       background: var(--accent-color);
     }
-
     /* スマホ対応 */
     @media (max-width: 600px) {
       .card {
@@ -173,6 +172,37 @@
 </nav>
 
 <script>
+// 追加：タイトルを2行以内に収める関数
+function fitTitleInTwoLines(titleText) {
+  const temp = document.createElement('h2');
+  temp.style.visibility = 'hidden';
+  temp.style.position = 'absolute';
+  temp.style.top = '-9999px';
+  temp.style.left = '-9999px';
+  temp.style.width = 'calc(100% - 80px)'; // 日付分を差し引いて計算
+  temp.style.fontSize = window.innerWidth <= 600 ? '1em' : '1.2em';
+  temp.style.fontWeight = 'bold';
+  temp.style.lineHeight = '1.4';
+  temp.style.padding = '0';
+  temp.style.margin = '0';
+  temp.style.whiteSpace = 'normal';
+  temp.textContent = titleText;
+  document.body.appendChild(temp);
+
+  const oneLineHeight = temp.offsetHeight;
+  const maxAllowedHeight = oneLineHeight * 2;
+
+  let fitted = titleText;
+  while (temp.offsetHeight > maxAllowedHeight && fitted.length > 0) {
+    fitted = fitted.slice(0, -1);
+    temp.textContent = fitted + '…';
+  }
+
+  document.body.removeChild(temp);
+
+  return fitted.length < titleText.length ? fitted + '…' : fitted;
+}
+
 const articlesList = document.getElementById("articlesList");
 const toggleMonthView = document.getElementById("toggleMonthView");
 const articles = JSON.parse(localStorage.getItem('articles') || '{}');
@@ -271,7 +301,7 @@ function createCard(article) {
   const preview = (article.content || article.summary || "本文なし").replace(/\s+/g, '').slice(0, 15) + "…";
   card.innerHTML = `
     <div class="title-date">
-      <h2>${article.title}</h2>
+      <h2>${fitTitleInTwoLines(article.title)}</h2>
       <div class="date">${formatDate(article.publishedAt || article.datePublished || article.date)}</div>
     </div>
     <div class="content-preview">${preview}</div>
