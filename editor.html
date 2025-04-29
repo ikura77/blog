@@ -108,6 +108,9 @@
   <h1>記事を作成</h1>
   <form id="editorForm">
     <input type="text" id="title" placeholder="タイトルを書く..." required />
+    <input type="text" id="image" placeholder="アイキャッチ画像のURL..." />
+    <textarea id="summary" placeholder="概要文を書く..." rows="3"></textarea>
+    <input type="text" id="url" placeholder="記事のURL（任意）" />
     <textarea id="content" placeholder="本文を書く..." rows="6" required></textarea>
     <select id="status">
       <option value="published">公開する</option>
@@ -126,6 +129,9 @@
   <script>
     const form = document.getElementById("editorForm");
     const titleInput = document.getElementById("title");
+    const imageInput = document.getElementById("image");
+    const summaryInput = document.getElementById("summary");
+    const urlInput = document.getElementById("url");
     const contentInput = document.getElementById("content");
     const statusSelect = document.getElementById("status");
     const saveBtn = document.getElementById("saveBtn");
@@ -146,6 +152,9 @@
     if (editId && articles[editId]) {
       const article = articles[editId];
       titleInput.value = article.title;
+      imageInput.value = article.image || "";
+      summaryInput.value = article.summary || "";
+      urlInput.value = article.url || "";
       contentInput.value = article.content;
       statusSelect.value = article.status || "draft";
       deleteBtn.style.display = "inline-block";
@@ -153,46 +162,45 @@
     }
 
     generateBtn.addEventListener("click", async () => {
-  let title = titleInput.value.trim();
-  contentInput.value = "ニュースを検索中...";
+      let title = titleInput.value.trim();
+      contentInput.value = "ニュースを検索中...";
 
-  try {
-    const res = await fetch("https://news-summarizer.pedehi.workers.dev/api/news");
-    const data = await res.json();
-    const newsList = Array.isArray(data) ? data : [];
+      try {
+        const res = await fetch("https://news-summarizer.pedehi.workers.dev/api/news");
+        const data = await res.json();
+        const newsList = Array.isArray(data) ? data : [];
 
-    let matched;
+        let matched;
+        if (title) {
+          matched = newsList.find(a => a.title.includes(title) || title.includes(a.title) || a.summary.includes(title));
+        }
+        if (!matched && newsList.length > 0) {
+          matched = newsList[Math.floor(Math.random() * newsList.length)];
+          title = matched.title;
+          titleInput.value = title;
+        }
 
-    if (title) {
-      matched = newsList.find(a =>
-        a.title.includes(title) || title.includes(a.title) || a.summary.includes(title)
-      );
-    }
-
-    // タイトルが空 or 一致する記事がなければランダムに選ぶ
-    if (!matched && newsList.length > 0) {
-      matched = newsList[Math.floor(Math.random() * newsList.length)];
-      title = matched.title;
-      titleInput.value = title; // 自動補完
-    }
-
-    if (matched) {
-      contentInput.value = `# ${matched.title}\n\n${matched.summary || '要約なし'}\n\n[続きを読む](${matched.url})`;
-    } else {
-      contentInput.value = "一致するニュース記事が見つかりませんでした。";
-    }
-  } catch (err) {
-    console.error(err);
-    contentInput.value = "";
-    alert("ニュース要約の取得に失敗しました。");
-  }
-});
-
-
+        if (matched) {
+          summaryInput.value = matched.summary || '';
+          urlInput.value = matched.url || '';
+          imageInput.value = matched.image || '';
+          contentInput.value = `# ${matched.title}\n\n${matched.summary || '要約なし'}\n\n[続きを読む](${matched.url})`;
+        } else {
+          contentInput.value = "一致するニュース記事が見つかりませんでした。";
+        }
+      } catch (err) {
+        console.error(err);
+        contentInput.value = "";
+        alert("ニュース要約の取得に失敗しました。");
+      }
+    });
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
       const title = titleInput.value.trim();
+      const image = imageInput.value.trim();
+      const summary = summaryInput.value.trim();
+      const url = urlInput.value.trim();
       const content = contentInput.value.trim();
       const status = statusSelect.value;
       if (!title || !content) return alert("すべて入力してね！");
@@ -204,7 +212,7 @@
       const datePublished = oldArticle.datePublished || dateStr;
       const dateUpdated = dateStr;
 
-      articles[id] = { id, title, content, datePublished, dateUpdated, status };
+      articles[id] = { id, title, image, summary, url, content, datePublished, dateUpdated, status };
       localStorage.setItem('articles', JSON.stringify(articles));
 
       alert("保存しました！");
