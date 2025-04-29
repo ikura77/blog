@@ -11,18 +11,18 @@ const urlsToCache = [
   './icon-512.png'
 ];
 
-// インストール時
+// インストール時にキャッシュを追加
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
-// ネットワークが使えないときキャッシュを返す
+// リクエストに対してキャッシュ優先で返す
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    })
   );
 });
