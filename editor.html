@@ -157,7 +157,7 @@
   contentInput.value = "ニュースを検索中...";
 
   try {
-    const res = await fetch("https://news-api.pedehi.workers.dev/api/news");
+    const res = await fetch("https://news-summarizer.pedehi.workers.dev/api/news");
     const data = await res.json();
     const newsList = Array.isArray(data) ? data : [];
 
