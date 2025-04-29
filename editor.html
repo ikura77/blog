@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>記事作成</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --main-color: #0d47a1;
@@ -17,186 +17,200 @@
       font-family: 'Noto Sans JP', sans-serif;
       background: var(--bg-gradient);
       color: var(--text-color);
-      max-width: 600px;
+      max-width: 720px;
       margin: 40px auto;
       padding: 20px;
-      line-height: 1.6;
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
       font-size: 2em;
+      margin-bottom: 20px;
       color: var(--main-color);
     }
     form {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
     input[type="text"], textarea, select {
-      width: 100%;
       padding: 14px;
-      font-size: 1.1em;
+      font-size: 1em;
       border: 1px solid #ccc;
       border-radius: 12px;
-      background: var(--card-bg);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      transition: box-shadow 0.3s;
+      background: #fff;
       box-sizing: border-box;
     }
-    input[type="text"]:focus, textarea:focus, select:focus {
-      box-shadow: 0 4px 14px rgba(13,71,161,0.4);
+    input:focus, textarea:focus, select:focus {
       outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 6px rgba(25, 118, 210, 0.3);
     }
     button {
-      width: 100%;
-      background: var(--main-color);
-      color: white;
-      font-size: 1.2em;
-      font-weight: bold;
-      padding: 14px;
+      font-size: 1.1em;
+      padding: 12px;
       border: none;
       border-radius: 50px;
       cursor: pointer;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: var(--accent-color);
-    }
-    #deleteBtn {
-      background: #e53935;
-      margin-top: -10px;
-    }
-    #deleteBtn:hover {
-      background: #c62828;
-    }
-    nav {
-      text-align: center;
-      margin-top: 30px;
-    }
-    nav a {
-      display: inline-block;
-      background: var(--main-color);
-      color: white;
-      text-decoration: none;
-      padding: 10px 20px;
-      margin: 0 8px;
-      border-radius: 50px;
       font-weight: bold;
       transition: background 0.3s;
     }
-    nav a:hover {
+    #saveBtn {
+      background: var(--main-color);
+      color: #fff;
+    }
+    #saveBtn:hover {
       background: var(--accent-color);
+    }
+    #generateBtn {
+      background: #4caf50;
+      color: #fff;
+    }
+    #generateBtn:hover {
+      background: #43a047;
+    }
+    #deleteBtn {
+      background: #e53935;
+      color: #fff;
+    }
+    #deleteBtn:hover {
+      background: #c62828;
     }
     #dateInfo {
       text-align: center;
       font-size: 0.9em;
       color: #666;
-      margin-top: 10px;
+      margin-top: 12px;
+    }
+    nav {
+      text-align: center;
+      margin-top: 32px;
+    }
+    nav a {
+      display: inline-block;
+      margin: 0 12px;
+      padding: 10px 20px;
+      background: var(--main-color);
+      color: #fff;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    nav a:hover {
+      background: var(--accent-color);
     }
   </style>
 </head>
 <body>
+  <h1>記事を作成</h1>
+  <form id="editorForm">
+    <input type="text" id="title" placeholder="タイトルを書く..." required />
+    <textarea id="content" placeholder="本文を書く..." rows="6" required></textarea>
+    <select id="status">
+      <option value="published">公開する</option>
+      <option value="draft">下書きにする</option>
+    </select>
+    <button type="submit" id="saveBtn">保存する</button>
+    <button type="button" id="generateBtn">ニュースから本文生成</button>
+    <button type="button" id="deleteBtn" style="display:none;">削除する</button>
+  </form>
+  <p id="dateInfo"></p>
+  <nav>
+    <a href="index.html">🏠 トップへ戻る</a>
+    <a href="drafts.html">📄 下書き一覧</a>
+  </nav>
 
-<h1>記事を作成</h1>
+  <script>
+    const form = document.getElementById("editorForm");
+    const titleInput = document.getElementById("title");
+    const contentInput = document.getElementById("content");
+    const statusSelect = document.getElementById("status");
+    const saveBtn = document.getElementById("saveBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const generateBtn = document.getElementById("generateBtn");
+    const dateInfo = document.getElementById("dateInfo");
 
-<form id="editorForm">
-  <input type="text" id="title" placeholder="タイトルを書く..." autocomplete="off" required>
-  <textarea id="content" placeholder="本文を書く..." rows="6" required></textarea>
-  <select id="status">
-    <option value="published">公開する</option>
-    <option value="draft">下書きにする</option>
-  </select>
-  <button type="submit" id="saveBtn">保存する</button>
-  <button type="button" id="deleteBtn" style="display: none;">削除する</button>
-</form>
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('id');
+    let articles = JSON.parse(localStorage.getItem('articles') || '{}');
 
-<p id="dateInfo"></p>
+    function formatDate(dateStr) {
+      if (!dateStr) return "不明";
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+    }
 
-<nav>
-  <a href="index.html">🏠 トップへ戻る</a>
-  <a href="drafts.html">📄 下書き一覧</a>
-</nav>
+    if (editId && articles[editId]) {
+      const article = articles[editId];
+      titleInput.value = article.title;
+      contentInput.value = article.content;
+      statusSelect.value = article.status || "draft";
+      deleteBtn.style.display = "inline-block";
+      dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
+    }
 
-<script>
-const form = document.getElementById("editorForm");
-const titleInput = document.getElementById("title");
-const contentInput = document.getElementById("content");
-const statusSelect = document.getElementById("status");
-const saveBtn = document.getElementById("saveBtn");
-const deleteBtn = document.getElementById("deleteBtn");
-const dateInfo = document.getElementById("dateInfo");
+    generateBtn.addEventListener("click", async () => {
+      const title = titleInput.value.trim();
+      if (!title) return alert("タイトルを入力してください！");
+      contentInput.value = "ニュースを検索中...";
 
-const urlParams = new URLSearchParams(window.location.search);
-const editId = urlParams.get('id');
+      try {
+        const res = await fetch("/api/news");
+        const newsList = await res.json();
 
-let articles = JSON.parse(localStorage.getItem('articles') || '{}');
+        const matched = newsList.find(a =>
+          a.title.includes(title) || title.includes(a.title)
+        );
 
-// 日付を日本語表示に変換する関数
-function formatDate(dateStr) {
-  if (!dateStr) return "不明";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
-}
+        if (matched) {
+          contentInput.value = `# ${matched.title}\n\n${matched.summary}\n\n[続きを読む](${matched.url})`;
+        } else {
+          contentInput.value = "一致するニュース記事が見つかりませんでした。";
+        }
+      } catch (err) {
+        console.error(err);
+        contentInput.value = "";
+        alert("ニュース要約の取得に失敗しました。");
+      }
+    });
 
-// 編集モードならデータをセット
-if (editId && articles[editId]) {
-  const article = articles[editId];
-  titleInput.value = article.title;
-  contentInput.value = article.content;
-  statusSelect.value = article.status || "draft";
-  deleteBtn.style.display = "block";
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      const status = statusSelect.value;
+      if (!title || !content) return alert("すべて入力してね！");
 
-  if (dateInfo) {
-    dateInfo.innerHTML = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
-  }
-}
+      const now = new Date();
+      const dateStr = now.toISOString();
+      const id = editId || Date.now().toString();
+      const oldArticle = articles[id] || {};
+      const datePublished = oldArticle.datePublished || dateStr;
+      const dateUpdated = dateStr;
 
-// 保存
-form.addEventListener("submit", function(e) {
-  e.preventDefault();
-  const title = titleInput.value.trim();
-  const content = contentInput.value.trim();
-  const status = statusSelect.value;
-  if (!title || !content) {
-    alert("すべて入力してね！");
-    return;
-  }
+      articles[id] = { id, title, content, datePublished, dateUpdated, status };
+      localStorage.setItem('articles', JSON.stringify(articles));
 
-  const now = new Date();
-  const dateStr = now.toISOString(); // ISO形式で保存する
+      alert("保存しました！");
+      location.href = status === "draft" ? "drafts.html" : "index.html";
+    });
 
-  const id = editId || Date.now().toString();
-  const oldArticle = articles[id] || {};
+    deleteBtn.addEventListener("click", function() {
+      if (confirm("この記事を削除していい？")) {
+        delete articles[editId];
+        localStorage.setItem('articles', JSON.stringify(articles));
+        alert("削除しました！");
+        location.href = "index.html";
+      }
+    });
 
-  // 新規なら datePublished を今の時間に設定、既存ならそのまま
-  const datePublished = oldArticle.datePublished || dateStr;
-  const dateUpdated = dateStr; // 保存のたびに更新日だけは更新
-
-  articles[id] = { id, title, content, datePublished, dateUpdated, status };
-  localStorage.setItem('articles', JSON.stringify(articles));
-
-  alert("保存しました！");
-  location.href = status === "draft" ? "drafts.html" : "index.html";
-});
-
-// 削除
-deleteBtn.addEventListener("click", function() {
-  if (confirm("この記事を削除していい？")) {
-    delete articles[editId];
-    localStorage.setItem('articles', JSON.stringify(articles));
-    alert("削除しました！");
-    location.href = "index.html";
-  }
-});
-
-// textarea 自動リサイズ
-const textarea = document.getElementById("content");
-textarea.addEventListener("input", () => {
-  textarea.style.height = "auto";
-  textarea.style.height = textarea.scrollHeight + "px";
-});
-</script>
-
+    contentInput.addEventListener("input", () => {
+      contentInput.style.height = "auto";
+      contentInput.style.height = contentInput.scrollHeight + "px";
+    });
+  </script>
 </body>
 </html>
