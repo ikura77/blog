@@ -153,21 +153,31 @@
     }
 
     generateBtn.addEventListener("click", async () => {
-  const title = titleInput.value.trim();
-  if (!title) return alert("タイトルを入力してください！");
+  let title = titleInput.value.trim();
   contentInput.value = "ニュースを検索中...";
 
   try {
     const res = await fetch("https://news-api.pedehi.workers.dev/api/news");
     const data = await res.json();
-    const newsList = data.articles || [];
+    const newsList = Array.isArray(data) ? data : [];
 
-    const matched = newsList.find(a =>
-      a.title.includes(title) || title.includes(a.title)
-    );
+    let matched;
+
+    if (title) {
+      matched = newsList.find(a =>
+        a.title.includes(title) || title.includes(a.title) || a.summary.includes(title)
+      );
+    }
+
+    // タイトルが空 or 一致する記事がなければランダムに選ぶ
+    if (!matched && newsList.length > 0) {
+      matched = newsList[Math.floor(Math.random() * newsList.length)];
+      title = matched.title;
+      titleInput.value = title; // 自動補完
+    }
 
     if (matched) {
-      contentInput.value = `# ${matched.title}\n\n${matched.description || '要約なし'}\n\n[続きを読む](${matched.url})`;
+      contentInput.value = `# ${matched.title}\n\n${matched.summary || '要約なし'}\n\n[続きを読む](${matched.url})`;
     } else {
       contentInput.value = "一致するニュース記事が見つかりませんでした。";
     }
@@ -177,6 +187,7 @@
     alert("ニュース要約の取得に失敗しました。");
   }
 });
+
 
 
     form.addEventListener("submit", function(e) {
