@@ -151,17 +151,30 @@ if (publishedArticles.length === 0) {
     card.className = "card";
 
     const dateText = article.datePublished || article.publishedAt || article.date || "日付不明";
-    const summaryText = article.summary || (article.content ? article.content.slice(0, 50) + "…" : "要約なし");
-    const link = article.url ? `<a href="${article.url}" target="_blank" aria-label="記事リンク：${article.title}">${article.title}</a>` : 
-                               `<a href="article.html?id=${id}" aria-label="記事リンク：${article.title}">${article.title}</a>`; // 自分の記事ページへリンク
+    const formattedDate = new Date(dateText).toLocaleDateString('ja-JP');
 
-    card.innerHTML = `
-      <div class="date">${new Date(dateText).toLocaleDateString('ja-JP')}</div>
-      <div class="summary">
-        ${link}<br>${summaryText}
-      </div>
-      ${article.image ? `<img src="${article.image}" alt="記事画像">` : ""}
-    `;
+    if (article.type === "summary") {
+      // 「今日を一言で」タイプの表示
+      const oneLiner = article.text || article.summary || "（内容なし）";
+      card.innerHTML = `
+        <div class="date">${formattedDate}</div>
+        <div class="summary">🗒️ ${oneLiner}</div>
+      `;
+    } else {
+      // 通常記事
+      const summaryText = article.summary || (article.content ? article.content.slice(0, 50) + "…" : "要約なし");
+      const link = article.url ? `<a href="${article.url}" target="_blank" aria-label="記事リンク：${article.title}">${article.title}</a>` : 
+                                 `<a href="article.html?id=${id}" aria-label="記事リンク：${article.title}">${article.title}</a>`;
+
+      card.innerHTML = `
+        <div class="date">${formattedDate}</div>
+        <div class="summary">
+          ${link}<br>${summaryText}
+        </div>
+        ${article.image ? `<img src="${article.image}" alt="記事画像">` : ""}
+      `;
+    }
+
     articlesList.appendChild(card);
   });
 }
