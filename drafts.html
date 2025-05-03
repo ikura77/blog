@@ -125,9 +125,11 @@ if (drafts.length === 0) {
   drafts.sort((a, b) => b.id - a.id).forEach(article => {
     const card = document.createElement("div");
     card.className = "card";
+    const articleLink = `article.html?id=${article.id}`;  // 編集リンクを作成
+
     card.innerHTML = `
       <div>
-        <h2>${article.title}</h2>
+        <h2><a href="${articleLink}">${article.title}</a></h2>
         <p>作成日: ${article.date ? article.date : '未設定'}</p>
       </div>
       <div class="actions">
