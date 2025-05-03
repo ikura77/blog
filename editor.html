@@ -141,18 +141,18 @@
       }
     }
 
-    imageInput.addEventListener("change", async (event) => {
+    // 画像を挿入
+    imageInput.addEventListener("change", function(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function (e) {
-        const dataURL = e.target.result;
+      reader.onload = function(e) {
         const img = document.createElement("img");
-        img.src = dataURL;
-        img.alt = "画像";
+        img.src = e.target.result;
         img.style.maxWidth = "100%";
         img.style.height = "auto";
+        img.alt = "挿入された画像";
 
         const selection = window.getSelection();
         const range = selection.getRangeAt(0);
@@ -164,21 +164,21 @@
         newRange.setEndAfter(img);
         selection.removeAllRanges();
         selection.addRange(newRange);
-        
+
         contentInput.focus();
       };
-      reader.readAsDataURL(file);
-      imageInput.value = ""; // Clear the input after inserting the image
+      reader.readAsDataURL(file); // 画像をBase64形式で読み込む
+      imageInput.value = ""; // 入力フィールドをリセット
     });
 
-    form.addEventListener("submit", function (e) {
+    // フォーム送信時に内容を保存
+    form.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      // 文字と画像両方の保存ができるようにする
       const title = titleInput.value.trim();
       const content = contentInput.innerHTML.trim();
       const status = statusSelect.value;
-      if (!title || !content) return alert("すべて入力してね！");
+      if (!title || !content) return alert("タイトルと本文を入力してください");
 
       const now = new Date();
       const dateStr = now.toISOString();
@@ -189,12 +189,14 @@
 
       articles[id] = { id, title, content, datePublished, dateUpdated, status };
       localStorage.setItem("articles", JSON.stringify(articles));
+
       alert("保存しました！");
       location.href = status === "draft" ? "drafts.html" : "index.html";
     });
 
+    // 削除ボタン
     deleteBtn.addEventListener("click", () => {
-      if (confirm("この記事を削除していい？")) {
+      if (confirm("この記事を削除しますか？")) {
         delete articles[editId];
         localStorage.setItem("articles", JSON.stringify(articles));
         alert("削除しました！");
