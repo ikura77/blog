@@ -51,13 +51,13 @@
       white-space: pre-wrap;
       overflow-wrap: break-word;
       resize: none;
+      overflow-y: auto;
     }
     .button-group {
       margin-top: 1rem;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 1rem;
-      justify-content: space-between;
     }
     button {
       padding: 0.8rem 1.5rem;
@@ -93,6 +93,7 @@
       height: auto;
       max-width: 500px;
       margin-bottom: 1rem;
+      display: block;
     }
 
     /* Mobile-first design adjustments */
@@ -100,15 +101,19 @@
       .editor-container {
         padding: 1rem;
       }
+      h1 {
+        font-size: 1.2rem;
+      }
+      .content-editor {
+        font-size: 1rem;
+        height: 250px;
+      }
       .button-group {
         flex-direction: column;
       }
       button {
         width: 100%;
         margin-bottom: 1rem;
-      }
-      h1 {
-        font-size: 1.2rem;
       }
     }
   </style>
@@ -201,10 +206,12 @@
     });
 
     function insertImageAtCursor(imageSrc) {
-      const imageTag = `<img src="${imageSrc}" alt="画像" style="max-width:100%; height:auto;" />`;
+      const imageTag = `<img src="${imageSrc}" alt="画像" style="max-width:100%; height:auto;" loading="lazy" />`;
       const range = window.getSelection().getRangeAt(0);
       range.deleteContents();
-      range.insertNode(document.createElement('div').innerHTML = imageTag);
+      const imageNode = document.createElement('div');
+      imageNode.innerHTML = imageTag;
+      range.insertNode(imageNode.firstChild);
       contentInput.focus();
     }
 
@@ -239,7 +246,6 @@
     });
 
     previewBtn.addEventListener("click", renderArticlePreview);
-
   </script>
 </body>
 </html>
