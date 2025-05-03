@@ -5,146 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>記事エディター</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 1rem;
-      background: #f4f4f4;
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; padding: 1rem; background: #f9f9f9; }
+    form { max-width: 600px; margin: auto; background: #fff; padding: 1rem; border-radius: 8px; }
+    textarea, input[type="text"] {
+      width: 100%; margin: 0.5rem 0; padding: 0.5rem;
     }
-    textarea {
-      width: 100%;
-      min-height: 200px;
-      font-size: 1rem;
-      padding: 0.5rem;
-    }
-    input, select, button {
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-      font-size: 1rem;
-    }
-    .btn-group {
+    img { max-width: 100%; height: auto; display: block; margin: 0.5rem 0; }
+    #preview {
       margin-top: 1rem;
+      padding: 1rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
+
   <h1>記事エディター</h1>
+
   <form id="editorForm">
-    <div>
-      <label>タイトル：</label><br>
-      <input type="text" id="title" required />
-    </div>
-    <div>
-      <label>本文：</label><br>
-      <textarea id="content" required></textarea>
-    </div>
-    <div>
-      <label>状態：</label><br>
-      <select id="status">
-        <option value="draft">下書き</option>
-        <option value="published">公開</option>
-      </select>
-    </div>
-    <div>
-      <label>画像を挿入：</label><br>
-      <input type="file" id="imageInput" accept="image/*" multiple />
-    </div>
-    <div class="btn-group">
-      <button type="submit" id="saveBtn">保存</button>
-      <button type="button" id="deleteBtn" style="display: none;">削除</button>
-    </div>
-    <p id="dateInfo"></p>
+    <input type="text" id="title" placeholder="タイトル"><br>
+    <textarea id="content" placeholder="ここに本文を書いてください..."></textarea>
+    <input type="file" id="imageInput" accept="image/*"><br>
+    <button type="button" id="insertImage">画像を挿入</button>
+    <button type="button" id="save">保存</button>
   </form>
 
+  <h2>📄 プレビュー</h2>
+  <div id="preview"></div>
+
   <script>
-    const form = document.getElementById("editorForm");
-    const titleInput = document.getElementById("title");
-    const contentInput = document.getElementById("content");
-    const statusSelect = document.getElementById("status");
-    const saveBtn = document.getElementById("saveBtn");
-    const deleteBtn = document.getElementById("deleteBtn");
-    const dateInfo = document.getElementById("dateInfo");
-    const imageInput = document.getElementById("imageInput");
+    const contentTextarea = document.getElementById('content');
+    const imageInput = document.getElementById('imageInput');
+    const insertImageBtn = document.getElementById('insertImage');
+    const preview = document.getElementById('preview');
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const editId = urlParams.get('id');
-    let articles = JSON.parse(localStorage.getItem('articles') || '{}');
-
-    function formatDate(dateStr) {
-      if (!dateStr) return "不明";
-      const d = new Date(dateStr);
-      return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
-    }
-
-    if (editId && articles[editId]) {
-      const article = articles[editId];
-      titleInput.value = article.title;
-      contentInput.value = article.content;
-      statusSelect.value = article.status || "draft";
-      deleteBtn.style.display = "inline-block";
-      dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
-    }
-
-    imageInput.addEventListener('change', (event) => {
-      const files = event.target.files;
-      if (!files.length) return;
-
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const imageSrc = e.target.result;
-          insertImageAtCursor(imageSrc);
-        };
-        reader.readAsDataURL(file);
-      });
-
-      imageInput.value = ''; // reset input
+    insertImageBtn.addEventListener('click', () => {
+      const file = imageInput.files[0];
+      if (!file) return alert('画像を選んでください');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imgTag = `<img src="${e.target.result}" alt="挿入画像">`;
+        const start = contentTextarea.selectionStart;
+        const end = contentTextarea.selectionEnd;
+        const text = contentTextarea.value;
+        contentTextarea.value = text.slice(0, start) + imgTag + text.slice(end);
+        updatePreview(); // 画像表示を更新
+      };
+      reader.readAsDataURL(file);
     });
 
-    function insertImageAtCursor(imageSrc) {
-      const cursorPos = contentInput.selectionStart;
-      const content = contentInput.value;
-      const beforeText = content.substring(0, cursorPos);
-      const afterText = content.substring(cursorPos);
-      const imageTag = `<img src="${imageSrc}" alt="画像" style="max-width:100%; height:auto;" />`;
-
-      contentInput.value = beforeText + imageTag + afterText;
-      contentInput.focus();
-      contentInput.selectionStart = contentInput.selectionEnd = cursorPos + imageTag.length;
-    }
-
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
-      const status = statusSelect.value;
-      if (!title || !content) return alert("すべて入力してね！");
-
-      const now = new Date();
-      const dateStr = now.toISOString();
-      const id = editId || Date.now().toString();
-      const oldArticle = articles[id] || {};
-      const datePublished = oldArticle.datePublished || dateStr;
-      const dateUpdated = dateStr;
-
-      articles[id] = { id, title, content, datePublished, dateUpdated, status };
-      localStorage.setItem('articles', JSON.stringify(articles));
-
-      alert("保存しました！");
-      location.href = status === "draft" ? "drafts.html" : "index.html";
+    document.getElementById('save').addEventListener('click', () => {
+      const title = document.getElementById('title').value;
+      const content = contentTextarea.value;
+      const html = `<h1>${title}</h1>\n${content}`;
+      localStorage.setItem('savedArticle', html);
+      alert('保存しました');
     });
 
-    deleteBtn.addEventListener("click", function() {
-      if (confirm("この記事を削除していい？")) {
-        delete articles[editId];
-        localStorage.setItem('articles', JSON.stringify(articles));
-        alert("削除しました！");
-        location.href = "index.html";
+    function updatePreview() {
+      preview.innerHTML = contentTextarea.value;
+    }
+
+    contentTextarea.addEventListener('input', updatePreview);
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('savedArticle');
+      if (saved) {
+        const temp = document.createElement('div');
+        temp.innerHTML = saved;
+        document.getElementById('title').value = temp.querySelector('h1')?.textContent || '';
+        contentTextarea.value = saved.replace(/<h1>.*?<\/h1>\n?/, '');
+        updatePreview();
       }
-    });
-
-    contentInput.addEventListener("input", () => {
-      contentInput.style.height = "auto";
-      contentInput.style.height = contentInput.scrollHeight + "px";
     });
   </script>
 </body>
