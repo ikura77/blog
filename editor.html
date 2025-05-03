@@ -2,157 +2,58 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>記事作成</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>記事エディター</title>
   <style>
-    /* 基本的なスタイル */
-    :root {
-      --main-color: #0d47a1;
-      --accent-color: #1976d2;
-      --bg-gradient: linear-gradient(135deg, #e3f2fd, #bbdefb);
-      --card-bg: #ffffff;
-      --text-color: #212121;
-    }
     body {
-      font-family: 'Noto Sans JP', sans-serif;
-      background: var(--bg-gradient);
-      color: var(--text-color);
-      max-width: 720px;
-      margin: 40px auto;
-      padding: 20px;
+      font-family: sans-serif;
+      padding: 1rem;
+      background: #f4f4f4;
     }
-    h1 {
-      text-align: center;
-      font-size: 2em;
-      margin-bottom: 20px;
-      color: var(--main-color);
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      background: var(--card-bg);
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    }
-    input[type="text"], textarea, select {
-      padding: 14px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      background: #fff;
-      box-sizing: border-box;
-    }
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: var(--accent-color);
-      box-shadow: 0 0 6px rgba(25, 118, 210, 0.3);
-    }
-    button {
-      font-size: 1.1em;
-      padding: 12px;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-    #saveBtn {
-      background: var(--main-color);
-      color: #fff;
-    }
-    #saveBtn:hover {
-      background: var(--accent-color);
-    }
-    #deleteBtn {
-      background: #e53935;
-      color: #fff;
-    }
-    #deleteBtn:hover {
-      background: #c62828;
-    }
-    #dateInfo {
-      text-align: center;
-      font-size: 0.9em;
-      color: #666;
-      margin-top: 12px;
-    }
-    nav {
-      text-align: center;
-      margin-top: 32px;
-    }
-    nav a {
-      display: inline-block;
-      margin: 0 12px;
-      padding: 10px 20px;
-      background: var(--main-color);
-      color: #fff;
-      border-radius: 50px;
-      text-decoration: none;
-      transition: background 0.3s;
-    }
-    nav a:hover {
-      background: var(--accent-color);
-    }
-    .image-upload {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .image-upload input {
-      display: none;
-    }
-    .image-upload label {
-      font-size: 1em;
-      padding: 8px 16px;
-      background-color: var(--accent-color);
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .image-preview {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .image-preview img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-    .content img {
+    textarea {
       width: 100%;
-      max-width: 100%;
-      height: auto;
-      margin-top: 10px;
+      min-height: 200px;
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    input, select, button {
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+    .btn-group {
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-  <h1>記事を作成</h1>
+  <h1>記事エディター</h1>
   <form id="editorForm">
-    <input type="text" id="title" placeholder="タイトルを書く..." required />
-    <textarea id="content" placeholder="本文を書く..." rows="6" required></textarea>
-    <select id="status">
-      <option value="published">公開する</option>
-      <option value="draft">下書きにする</option>
-    </select>
-    <div class="image-upload">
-      <label for="imageInput">画像を選択 (JPEGのみ)</label>
-      <input type="file" id="imageInput" accept="image/jpeg" multiple />
+    <div>
+      <label>タイトル：</label><br>
+      <input type="text" id="title" required />
     </div>
-    <div id="imagePreview" class="image-preview"></div>
-    <button type="submit" id="saveBtn">保存する</button>
-    <button type="button" id="deleteBtn" style="display:none;">削除する</button>
+    <div>
+      <label>本文：</label><br>
+      <textarea id="content" required></textarea>
+    </div>
+    <div>
+      <label>状態：</label><br>
+      <select id="status">
+        <option value="draft">下書き</option>
+        <option value="published">公開</option>
+      </select>
+    </div>
+    <div>
+      <label>画像を挿入：</label><br>
+      <input type="file" id="imageInput" accept="image/*" multiple />
+    </div>
+    <div class="btn-group">
+      <button type="submit" id="saveBtn">保存</button>
+      <button type="button" id="deleteBtn" style="display: none;">削除</button>
+    </div>
+    <p id="dateInfo"></p>
   </form>
-  <p id="dateInfo"></p>
-  <nav>
-    <a href="index.html">🏠 トップへ戻る</a>
-    <a href="drafts.html">📄 下書き一覧</a>
-  </nav>
 
   <script>
     const form = document.getElementById("editorForm");
@@ -163,12 +64,10 @@
     const deleteBtn = document.getElementById("deleteBtn");
     const dateInfo = document.getElementById("dateInfo");
     const imageInput = document.getElementById("imageInput");
-    const imagePreview = document.getElementById("imagePreview");
 
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
     let articles = JSON.parse(localStorage.getItem('articles') || '{}');
-    let imageUrls = [];
 
     function formatDate(dateStr) {
       if (!dateStr) return "不明";
@@ -181,43 +80,36 @@
       titleInput.value = article.title;
       contentInput.value = article.content;
       statusSelect.value = article.status || "draft";
-      imageUrls = article.imageUrls || [];
       deleteBtn.style.display = "inline-block";
       dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
-      updateImagePreview();
     }
 
     imageInput.addEventListener('change', (event) => {
       const files = event.target.files;
-      imageUrls = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file.type === 'image/jpeg') {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            imageUrls.push(e.target.result);  // 画像のデータURLを保存
-            updateImagePreview();
-            insertImageToContent(e.target.result);
-          };
-          reader.readAsDataURL(file);
-        } else {
-          alert("JPEG画像のみ選択してください。");
-        }
-      }
+      if (!files.length) return;
+
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imageSrc = e.target.result;
+          insertImageAtCursor(imageSrc);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      imageInput.value = ''; // reset input
     });
 
-    function updateImagePreview() {
-      imagePreview.innerHTML = '';
-      imageUrls.forEach(url => {
-        const img = document.createElement('img');
-        img.src = url;
-        imagePreview.appendChild(img);
-      });
-    }
+    function insertImageAtCursor(imageSrc) {
+      const cursorPos = contentInput.selectionStart;
+      const content = contentInput.value;
+      const beforeText = content.substring(0, cursorPos);
+      const afterText = content.substring(cursorPos);
+      const imageTag = `<img src="${imageSrc}" alt="画像" style="max-width:100%; height:auto;" />`;
 
-    function insertImageToContent(url) {
-      const imageElement = `<img src="${url}" alt="Uploaded Image" />`;
-      contentInput.value += imageElement;  // 本文に画像タグを挿入
+      contentInput.value = beforeText + imageTag + afterText;
+      contentInput.focus();
+      contentInput.selectionStart = contentInput.selectionEnd = cursorPos + imageTag.length;
     }
 
     form.addEventListener("submit", function(e) {
@@ -234,7 +126,7 @@
       const datePublished = oldArticle.datePublished || dateStr;
       const dateUpdated = dateStr;
 
-      articles[id] = { id, title, content, datePublished, dateUpdated, status, imageUrls };
+      articles[id] = { id, title, content, datePublished, dateUpdated, status };
       localStorage.setItem('articles', JSON.stringify(articles));
 
       alert("保存しました！");
