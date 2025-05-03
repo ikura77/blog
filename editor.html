@@ -75,10 +75,6 @@
       background-color: #f44336;
       color: white;
     }
-    .btn-preview {
-      background-color: #2196F3;
-      color: white;
-    }
     .btn-back {
       background-color: #9E9E9E;
       color: white;
@@ -144,7 +140,6 @@
       <div class="button-group">
         <button type="submit" class="btn-save">保存</button>
         <button type="button" id="deleteBtn" class="btn-delete" style="display: none;">削除</button>
-        <button type="button" id="previewBtn" class="btn-preview">プレビュー</button>
         <button type="button" class="btn-back" onclick="window.location.href='index.html'">トップページへ戻る</button>
       </div>
       <p id="dateInfo"></p>
@@ -160,7 +155,6 @@
     const statusSelect = document.getElementById("status");
     const saveBtn = document.querySelector(".btn-save");
     const deleteBtn = document.getElementById("deleteBtn");
-    const previewBtn = document.getElementById("previewBtn");
     const dateInfo = document.getElementById("dateInfo");
     const imageInput = document.getElementById("imageInput");
 
@@ -172,12 +166,6 @@
       if (!dateStr) return "不明";
       const d = new Date(dateStr);
       return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
-    }
-
-    function renderArticlePreview() {
-      const title = titleInput.value;
-      const content = contentInput.innerHTML;
-      document.getElementById("imagePreview").innerHTML = `<h2>${title}</h2><p>${content}</p>`;
     }
 
     if (editId && articles[editId]) {
@@ -244,8 +232,6 @@
         location.href = "index.html";
       }
     });
-
-    previewBtn.addEventListener("click", renderArticlePreview);
   </script>
 </body>
 </html>
