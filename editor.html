@@ -100,7 +100,7 @@
       </div>
       <div class="form-group">
         <label for="imageInput">画像を挿入：</label>
-        <input type="file" id="imageInput" accept="image/*" multiple />
+        <input type="file" id="imageInput" accept="image/*" />
       </div>
       <div class="button-group">
         <button type="submit" class="btn-save">保存</button>
@@ -112,60 +112,6 @@
   </div>
 
   <script>
-    const dbName = "ArticleImagesDB";
-    const storeName = "images";
-    let db;
-
-    // IndexedDB 初期化
-    function initDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(dbName, 1);
-        request.onerror = () => reject("DBを開けません");
-        request.onsuccess = () => {
-          db = request.result;
-          resolve();
-        };
-        request.onupgradeneeded = (e) => {
-          db = e.target.result;
-          if (!db.objectStoreNames.contains(storeName)) {
-            db.createObjectStore(storeName, { keyPath: "id" });
-          }
-        };
-      });
-    }
-
-    function saveImageToDB(id, dataURL) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(storeName, "readwrite");
-        const store = tx.objectStore(storeName);
-        store.put({ id, dataURL });
-
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject("画像保存に失敗しました");
-      });
-    }
-
-    function insertImageAtCursor(imageSrc) {
-      const img = document.createElement("img");
-      img.src = imageSrc;
-      img.alt = "画像";
-      img.style.maxWidth = "100%";
-      img.style.height = "auto";
-
-      const selection = window.getSelection();
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(img);
-
-      const newRange = document.createRange();
-      newRange.setStartAfter(img);
-      newRange.setEndAfter(img);
-      selection.removeAllRanges();
-      selection.addRange(newRange);
-
-      contentInput.focus();
-    }
-
     const form = document.getElementById("editorForm");
     const titleInput = document.getElementById("title");
     const contentInput = document.getElementById("content");
@@ -196,27 +142,46 @@
     }
 
     imageInput.addEventListener("change", async (event) => {
-      const files = event.target.files;
-      for (let file of files) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const dataURL = e.target.result;
-          const imageId = `${Date.now()}-${Math.random()}`;
+      const file = event.target.files[0];
+      if (!file) return;
 
-          saveImageToDB(imageId, dataURL).then(() => {
-            console.log(`画像 ${imageId} 保存完了`);
-            insertImageAtCursor(dataURL);
-          }).catch(error => {
-            console.error("画像保存に失敗しました:", error);
-          });
-        };
-        reader.readAsDataURL(file);
-      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const dataURL = e.target.result;
+        const img = document.createElement("img");
+        img.src = dataURL;
+        img.alt = "画像";
+        img.style.maxWidth = "100%";
+        img.style.height = "auto";
+
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(img);
+
+        const newRange = document.createRange();
+        newRange.setStartAfter(img);
+        newRange.setEndAfter(img);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        
+        contentInput.focus();
+      };
+      reader.readAsDataURL(file);
       imageInput.value = "";
     });
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+
+      // 画像挿入が完了していない場合、保存処理を待機
+      const imageInsertionComplete = imageInput.value === ""; // 画像挿入が完了したかどうか
+
+      if (!imageInsertionComplete) {
+        alert("画像の読み込みが完了していません！");
+        return;
+      }
+
       const title = titleInput.value.trim();
       const content = contentInput.innerHTML.trim();
       const status = statusSelect.value;
@@ -244,9 +209,8 @@
       }
     });
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      await initDB();
-      await loadArticle();
+    window.addEventListener("DOMContentLoaded", () => {
+      loadArticle();
     });
   </script>
 </body>
