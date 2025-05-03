@@ -135,25 +135,35 @@
     }
 
     function saveImageToDB(id, dataURL) {
-      const tx = db.transaction(storeName, "readwrite");
-      const store = tx.objectStore(storeName);
-      store.put({ id, dataURL });
-    }
-
-    function loadImageFromDB(id) {
-      return new Promise((resolve) => {
-        const tx = db.transaction(storeName, "readonly");
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
-        const req = store.get(id);
-        req.onsuccess = () => resolve(req.result?.dataURL || null);
-        req.onerror = () => resolve(null);
+        store.put({ id, dataURL });
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject("画像保存に失敗しました");
       });
     }
 
-    function deleteImageFromDB(id) {
-      const tx = db.transaction(storeName, "readwrite");
-      const store = tx.objectStore(storeName);
-      store.delete(id);
+    function insertImageAtCursor(imageSrc) {
+      const img = document.createElement("img");
+      img.src = imageSrc;
+      img.alt = "画像";
+      img.style.maxWidth = "100%";
+      img.style.height = "auto";
+
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(img);
+
+      const newRange = document.createRange();
+      newRange.setStartAfter(img);
+      newRange.setEndAfter(img);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+
+      contentInput.focus();
     }
 
     const form = document.getElementById("editorForm");
@@ -174,34 +184,7 @@
       return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
     }
 
-    function insertImageAtCursor(imageSrc) {
-      const img = document.createElement("img");
-      img.src = imageSrc;
-      img.alt = "画像";
-      img.style.maxWidth = "100%";
-      img.style.height = "auto";
-      const range = window.getSelection().getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(img);
-      contentInput.focus();
-    }
-
-    imageInput.addEventListener("change", async (event) => {
-      const files = event.target.files;
-      for (let file of files) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const dataURL = e.target.result;
-          const imageId = `${Date.now()}-${Math.random()}`;
-          saveImageToDB(imageId, dataURL);
-          insertImageAtCursor(dataURL);
-        };
-        reader.readAsDataURL(file);
-      }
-      imageInput.value = "";
-    });
-
-    async function loadArticle() {
+    function loadArticle() {
       if (editId && articles[editId]) {
         const article = articles[editId];
         titleInput.value = article.title;
@@ -211,6 +194,26 @@
         dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
       }
     }
+
+    imageInput.addEventListener("change", async (event) => {
+      const files = event.target.files;
+      for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const dataURL = e.target.result;
+          const imageId = `${Date.now()}-${Math.random()}`;
+
+          saveImageToDB(imageId, dataURL).then(() => {
+            console.log(`画像 ${imageId} 保存完了`);
+            insertImageAtCursor(dataURL);
+          }).catch(error => {
+            console.error("画像保存に失敗しました:", error);
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+      imageInput.value = "";
+    });
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -236,7 +239,6 @@
       if (confirm("この記事を削除していい？")) {
         delete articles[editId];
         localStorage.setItem("articles", JSON.stringify(articles));
-        deleteImageFromDB(editId);
         alert("削除しました！");
         location.href = "index.html";
       }
