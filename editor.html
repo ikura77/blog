@@ -166,28 +166,15 @@
         selection.addRange(newRange);
         
         contentInput.focus();
-        forceSubmit();
       };
       reader.readAsDataURL(file);
-      imageInput.value = "";
+      imageInput.value = ""; // Clear the input after inserting the image
     });
-
-    function forceSubmit() {
-      // 手動でフォームのsubmitイベントを発生させます
-      const submitButton = form.querySelector("button[type='submit']");
-      submitButton.click();
-    }
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      // 画像が挿入されたかどうかを確認
-      const images = contentInput.querySelectorAll('img');
-      if (images.length === 0) {
-        alert("画像が挿入されていません！");
-        return;
-      }
-
+      // 文字と画像両方の保存ができるようにする
       const title = titleInput.value.trim();
       const content = contentInput.innerHTML.trim();
       const status = statusSelect.value;
