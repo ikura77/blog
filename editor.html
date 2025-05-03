@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <style>
+    /* 基本的なスタイル */
     :root {
       --main-color: #0d47a1;
       --accent-color: #1976d2;
@@ -122,6 +123,12 @@
       object-fit: cover;
       border-radius: 8px;
     }
+    .content img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -188,8 +195,9 @@
         if (file.type === 'image/jpeg') {
           const reader = new FileReader();
           reader.onload = function(e) {
-            imageUrls.push(e.target.result);
+            imageUrls.push(e.target.result);  // 画像のデータURLを保存
             updateImagePreview();
+            insertImageToContent(e.target.result);
           };
           reader.readAsDataURL(file);
         } else {
@@ -205,6 +213,11 @@
         img.src = url;
         imagePreview.appendChild(img);
       });
+    }
+
+    function insertImageToContent(url) {
+      const imageElement = `<img src="${url}" alt="Uploaded Image" />`;
+      contentInput.value += imageElement;  // 本文に画像タグを挿入
     }
 
     form.addEventListener("submit", function(e) {
