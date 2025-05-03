@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>１日１記事要約 - 統合版</title>
+  <title>記事一覧 - ニュースリンク集</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -42,30 +42,24 @@
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
       padding: 20px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid #e0e0e0;
+      margin-bottom: 15px;
+      border-left: 6px solid var(--main-color);
     }
-    .card img {
-      width: 100%;
-      height: auto;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-    .date {
-      font-size: 0.9em;
-      color: #777;
-      margin-bottom: 10px;
-    }
-    .summary {
-      font-size: 1em;
-      color: #333;
-    }
-    .summary a {
+    .card a {
       font-weight: bold;
       text-decoration: none;
       color: var(--main-color);
+    }
+    .source {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+    .card img {
+      max-width: 100%;
+      border-radius: var(--border-radius);
+      margin-top: 10px;
+      box-shadow: var(--box-shadow);
     }
     nav {
       text-align: center;
@@ -85,60 +79,66 @@
     nav a:hover {
       background: var(--accent-color);
     }
+    .date {
+      font-size: 0.85em;
+      color: #555;
+      margin-bottom: 5px;
+    }
     @media (max-width: 600px) {
       .card { padding: 15px; }
       body { padding: 15px; }
+      h1 { font-size: 1.8em; }
+      h2 { font-size: 1.2em; }
     }
   </style>
 </head>
 <body>
 
-<h1>１日１記事要約</h1>
+<h1>記事一覧</h1>
 
-<!-- ニュースAPI記事表示 -->
-<h2>📰 今日のニュース要約</h2>
-<div id="newsList">読み込み中...</div>
-
-<!-- 自分の記事表示 -->
-<h2>📝 自分の要約記事</h2>
+<!-- 自分の記事表示（上に移動） -->
+<h2>📝 自分の記事</h2>
 <div id="articlesList">読み込み中...</div>
 
+<!-- ニュース見出しリンク -->
+<h2>📰 今日のニュースリンク集</h2>
+<div id="newsList">読み込み中...</div>
+
 <nav>
-  <a href="editor.html">✏️ 新しく書く</a>
-  <a href="drafts.html">📄 下書き一覧</a>
+  <a href="editor.html" aria-label="新しく記事を書く">✏️ 新しく書く</a>
+  <a href="drafts.html" aria-label="下書き一覧を見る">📄 下書き一覧</a>
 </nav>
 
 <script>
+// ニュース取得（GNews API）
 const newsList = document.getElementById("newsList");
-fetch("https://news-summarizer.pedehi.workers.dev/api/news")
+fetch("https://my-api.pedehi.workers.dev/api/news")
   .then(res => res.json())
   .then(data => {
     newsList.innerHTML = "";
-    data.forEach(article => {
+    data.articles.forEach(article => {
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
-        ${article.image ? `<img src="${article.image}" alt="アイキャッチ">` : ''}
-        <div class="summary">
-          <a href="${article.url}" target="_blank">${article.title}</a><br>
-          ${article.summary || '要約なし'}
-        </div>
+        <a href="${article.url}" target="_blank" rel="noopener noreferrer" aria-label="記事リンク：${article.title}">${article.title}</a>
+        <div class="source">出典：${article.source.name || "不明"}</div>
       `;
       newsList.appendChild(card);
     });
   })
   .catch(err => {
     console.error(err);
-    newsList.innerHTML = "<p style='color:red;'>ニュースの取得に失敗しました。</p>";
+    newsList.innerHTML = "<p style='color:red;'>ニュースの取得に失敗しました。再試行してください。</p>";
   });
 
+// 自分の記事（localStorage）
 const articlesList = document.getElementById("articlesList");
-const articles = JSON.parse(localStorage.getItem('articles') || '{}');
+const articles = JSON.parse(localStorage.getItem('articles') || '{}') || {};
 
 const publishedArticles = Object.entries(articles)
   .filter(([_, article]) => article.status === "published" || article.status === "public")
   .sort((a, b) =>
-    new Date(b[1].datePublished || b[1].publishedAt || b[1].date || 0) -
+    new Date(b[1].datePublished || b[1].publishedAt || b[1].date || 0) - 
     new Date(a[1].datePublished || a[1].publishedAt || a[1].date || 0)
   );
 
@@ -151,15 +151,16 @@ if (publishedArticles.length === 0) {
     card.className = "card";
 
     const dateText = article.datePublished || article.publishedAt || article.date || "日付不明";
-    const summaryText = article.summary || article.content?.slice(0, 50) + "…" || "要約なし";
-    const link = article.url ? `<a href="${article.url}" target="_blank">${article.title}</a>` : article.title;
+    const summaryText = article.summary || (article.content ? article.content.slice(0, 50) + "…" : "要約なし");
+    const link = article.url ? `<a href="${article.url}" target="_blank" aria-label="記事リンク：${article.title}">${article.title}</a>` : 
+                               `<a href="article.html?id=${id}" aria-label="記事リンク：${article.title}">${article.title}</a>`; // 自分の記事ページへリンク
 
     card.innerHTML = `
-      ${article.image ? `<img src="${article.image}" alt="アイキャッチ">` : ''}
       <div class="date">${new Date(dateText).toLocaleDateString('ja-JP')}</div>
       <div class="summary">
         ${link}<br>${summaryText}
       </div>
+      ${article.image ? `<img src="${article.image}" alt="記事画像">` : ""}
     `;
     articlesList.appendChild(card);
   });
