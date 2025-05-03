@@ -65,13 +65,6 @@
     #saveBtn:hover {
       background: var(--accent-color);
     }
-    #generateBtn {
-      background: #4caf50;
-      color: #fff;
-    }
-    #generateBtn:hover {
-      background: #43a047;
-    }
     #deleteBtn {
       background: #e53935;
       color: #fff;
@@ -102,6 +95,22 @@
     nav a:hover {
       background: var(--accent-color);
     }
+    .image-upload {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .image-upload input {
+      display: none;
+    }
+    .image-upload label {
+      font-size: 1em;
+      padding: 8px 16px;
+      background-color: var(--accent-color);
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -113,8 +122,11 @@
       <option value="published">公開する</option>
       <option value="draft">下書きにする</option>
     </select>
+    <div class="image-upload">
+      <label for="imageInput">画像を選択</label>
+      <input type="file" id="imageInput" accept="image/*" />
+    </div>
     <button type="submit" id="saveBtn">保存する</button>
-    <button type="button" id="generateBtn">ニュースから本文生成</button>
     <button type="button" id="deleteBtn" style="display:none;">削除する</button>
   </form>
   <p id="dateInfo"></p>
@@ -130,12 +142,13 @@
     const statusSelect = document.getElementById("status");
     const saveBtn = document.getElementById("saveBtn");
     const deleteBtn = document.getElementById("deleteBtn");
-    const generateBtn = document.getElementById("generateBtn");
     const dateInfo = document.getElementById("dateInfo");
+    const imageInput = document.getElementById("imageInput");
 
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
     let articles = JSON.parse(localStorage.getItem('articles') || '{}');
+    let imageUrl = '';
 
     function formatDate(dateStr) {
       if (!dateStr) return "不明";
@@ -148,38 +161,35 @@
       titleInput.value = article.title;
       contentInput.value = article.content;
       statusSelect.value = article.status || "draft";
+      imageUrl = article.imageUrl || '';
       deleteBtn.style.display = "inline-block";
       dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
     }
 
-    generateBtn.addEventListener("click", async () => {
-      let title = titleInput.value.trim();
-      contentInput.value = "ニュースを取得中...";
-
-      try {
-        const res = await fetch("https://your-worker-name.workers.dev/api/news");
-        const data = await res.json();
-        const newsList = Array.isArray(data) ? data : [];
-
-        let matched = newsList.find(n => n.title.includes(title) || title.includes(n.title) || n.summary.includes(title));
-
-        if (!matched && newsList.length > 0) {
-          matched = newsList[Math.floor(Math.random() * newsList.length)];
-          title = matched.title;
-          titleInput.value = title;
-        }
-
-        if (matched) {
-          contentInput.value = `# ${matched.title}\n\n${matched.summary || '要約なし'}\n\n[続きを読む](${matched.url})`;
-        } else {
-          contentInput.value = "一致するニュース記事が見つかりませんでした。";
-        }
-      } catch (err) {
-        console.error(err);
-        contentInput.value = "";
-        alert("ニュース要約の取得に失敗しました。");
+    imageInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          imageUrl = e.target.result;
+          insertImageAtCursor(imageUrl);
+        };
+        reader.readAsDataURL(file);
       }
     });
+
+    function insertImageAtCursor(imageSrc) {
+      const cursorPos = contentInput.selectionStart;
+      const content = contentInput.value;
+      const beforeText = content.substring(0, cursorPos);
+      const afterText = content.substring(cursorPos, content.length);
+      const imageTag = `<img src="${imageSrc}" alt="挿入画像" style="max-width:100%; height:auto;" />`;
+
+      contentInput.value = beforeText + imageTag + afterText;
+      contentInput.focus();
+      contentInput.selectionStart = cursorPos + imageTag.length;
+      contentInput.selectionEnd = cursorPos + imageTag.length;
+    }
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
@@ -195,7 +205,7 @@
       const datePublished = oldArticle.datePublished || dateStr;
       const dateUpdated = dateStr;
 
-      articles[id] = { id, title, content, datePublished, dateUpdated, status };
+      articles[id] = { id, title, content, datePublished, dateUpdated, status, imageUrl };
       localStorage.setItem('articles', JSON.stringify(articles));
 
       alert("保存しました！");
