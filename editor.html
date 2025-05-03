@@ -99,7 +99,6 @@
         <label for="imageInput">画像を挿入：</label>
         <input type="file" id="imageInput" accept="image/*" multiple />
       </div>
-      <div class="image-preview" id="imagePreview"></div>
       <div class="button-group">
         <button type="submit" class="btn-save">保存</button>
         <button type="button" id="deleteBtn" class="btn-delete" style="display: none;">削除</button>
@@ -120,7 +119,6 @@
     const previewBtn = document.getElementById("previewBtn");
     const dateInfo = document.getElementById("dateInfo");
     const imageInput = document.getElementById("imageInput");
-    const imagePreview = document.getElementById("imagePreview");
 
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
@@ -135,7 +133,7 @@
     function renderArticlePreview() {
       const title = titleInput.value;
       const content = contentInput.value;
-      imagePreview.innerHTML = `<h2>${title}</h2><p>${content}</p>`;
+      document.getElementById("imagePreview").innerHTML = `<h2>${title}</h2><p>${content}</p>`;
     }
 
     if (editId && articles[editId]) {
@@ -151,20 +149,29 @@
       const files = event.target.files;
       if (!files.length) return;
 
-      imagePreview.innerHTML = ''; // Clear any previous previews
       Array.from(files).forEach(file => {
         const reader = new FileReader();
         reader.onload = function(e) {
           const imageSrc = e.target.result;
-          const img = document.createElement('img');
-          img.src = imageSrc;
-          imagePreview.appendChild(img);
+          insertImageAtCursor(imageSrc);
         };
         reader.readAsDataURL(file);
       });
 
       imageInput.value = ''; // Reset input field
     });
+
+    function insertImageAtCursor(imageSrc) {
+      const cursorPos = contentInput.selectionStart;
+      const content = contentInput.value;
+      const beforeText = content.substring(0, cursorPos);
+      const afterText = content.substring(cursorPos);
+      const imageTag = `<img src="${imageSrc}" alt="画像" style="max-width:100%; height:auto;" />`;
+
+      contentInput.value = beforeText + imageTag + afterText;
+      contentInput.focus();
+      contentInput.selectionStart = contentInput.selectionEnd = cursorPos + imageTag.length;
+    }
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
