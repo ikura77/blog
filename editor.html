@@ -70,7 +70,6 @@
     .btn-save { background-color: #4CAF50; color: white; }
     .btn-delete { background-color: #f44336; color: white; }
     .btn-back { background-color: #9E9E9E; color: white; }
-
     @media (max-width: 600px) {
       .editor-container { padding: 1rem; }
       h1 { font-size: 1.2rem; }
@@ -103,156 +102,150 @@
         <input type="file" id="imageInput" accept="image/*" />
       </div>
       <div class="button-group">
-        <button type="submit" class="btn-save" id="saveButton">保存</button>
+        <button type="submit" class="btn-save">保存</button>
         <button type="button" id="deleteBtn" class="btn-delete" style="display: none;">削除</button>
         <button type="button" class="btn-back" onclick="window.location.href='index.html'">トップページへ戻る</button>
       </div>
       <p id="dateInfo"></p>
     </form>
   </div>
-<script>
-  const form = document.getElementById("editorForm");
-  const titleInput = document.getElementById("title");
-  const contentInput = document.getElementById("content");
-  const statusSelect = document.getElementById("status");
-  const deleteBtn = document.getElementById("deleteBtn");
-  const dateInfo = document.getElementById("dateInfo");
-  const imageInput = document.getElementById("imageInput");
-  const saveButton = document.getElementById("saveButton");
 
-  const urlParams = new URLSearchParams(location.search);
-  const editId = urlParams.get("id");
-  let articles = JSON.parse(localStorage.getItem("articles") || "{}");
+  <script>
+    const form = document.getElementById("editorForm");
+    const titleInput = document.getElementById("title");
+    const contentInput = document.getElementById("content");
+    const statusSelect = document.getElementById("status");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const dateInfo = document.getElementById("dateInfo");
+    const imageInput = document.getElementById("imageInput");
 
-  // --- IndexedDB初期化 ---
-  let db;
-  const request = indexedDB.open("ArticleImagesDB", 1);
-  request.onupgradeneeded = (e) => {
-    db = e.target.result;
-    db.createObjectStore("images", { keyPath: "id" });
-  };
-  request.onsuccess = (e) => {
-    db = e.target.result;
-    loadArticle(); // DB準備できたら記事読み込み
-  };
-  request.onerror = () => alert("IndexedDBエラー");
+    const urlParams = new URLSearchParams(location.search);
+    const editId = urlParams.get("id");
+    let articles = JSON.parse(localStorage.getItem("articles") || "{}");
 
-  // --- ID生成 ---
-  const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 5);
-
-  // --- IndexedDBに画像保存 ---
-  function saveImage(file, callback) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const id = generateId();
-      const transaction = db.transaction("images", "readwrite");
-      const store = transaction.objectStore("images");
-      store.put({ id, data: e.target.result });
-      transaction.oncomplete = () => callback(id);
+    let db;
+    const request = indexedDB.open("ArticleImagesDB", 1);
+    request.onupgradeneeded = (e) => {
+      db = e.target.result;
+      db.createObjectStore("images", { keyPath: "id" });
     };
-    reader.readAsDataURL(file);
-  }
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      loadArticle();
+    };
+    request.onerror = () => alert("IndexedDBの初期化に失敗しました");
 
-  // --- IndexedDBから画像読み込み（表示用） ---
-  function loadImagesInContent(contentEl, callback) {
-    const imgs = contentEl.querySelectorAll("img[data-img-id]");
-    let pending = imgs.length;
-    if (pending === 0) return callback?.();
+    const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 5);
 
-    imgs.forEach(img => {
-      const id = img.getAttribute("data-img-id");
-      const tx = db.transaction("images", "readonly");
-      const store = tx.objectStore("images");
-      const req = store.get(id);
-      req.onsuccess = () => {
-        img.src = req.result?.data || "";
-        img.removeAttribute("data-img-id");
-        if (--pending === 0) callback?.();
+    function saveImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const id = generateId();
+        const tx = db.transaction("images", "readwrite");
+        const store = tx.objectStore("images");
+        store.put({ id, data: e.target.result });
+        tx.oncomplete = () => callback(id);
       };
+      reader.readAsDataURL(file);
+    }
+
+    function loadImagesInContent(contentEl, callback) {
+      const imgs = contentEl.querySelectorAll("img[data-img-id]");
+      let pending = imgs.length;
+      if (pending === 0) return callback?.();
+
+      imgs.forEach(img => {
+        const id = img.getAttribute("data-img-id");
+        const tx = db.transaction("images", "readonly");
+        const store = tx.objectStore("images");
+        const req = store.get(id);
+        req.onsuccess = () => {
+          img.src = req.result?.data || "";
+          img.removeAttribute("data-img-id");
+          if (--pending === 0) callback?.();
+        };
+      });
+    }
+
+    imageInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file || !db) return;
+
+      saveImage(file, (id) => {
+        const img = document.createElement("img");
+        img.setAttribute("data-img-id", id);
+        img.alt = "画像";
+        img.style.maxWidth = "100%";
+        img.style.height = "auto";
+
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(img);
+        selection.removeAllRanges();
+
+        const newRange = document.createRange();
+        newRange.setStartAfter(img);
+        newRange.setEndAfter(img);
+        selection.addRange(newRange);
+        contentInput.focus();
+      });
+
+      imageInput.value = "";
     });
-  }
 
-  // --- 画像挿入時の処理 ---
-  imageInput.addEventListener("change", (event) => {
-    const file = event.target.files[0];
-    if (!file || !db) return;
+    function formatDate(dateStr) {
+      if (!dateStr) return "不明";
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+    }
 
-    saveImage(file, (id) => {
-      const img = document.createElement("img");
-      img.setAttribute("data-img-id", id);
-      img.alt = "画像";
-      img.style.maxWidth = "100%";
-      img.style.height = "auto";
+    function loadArticle() {
+      if (editId && articles[editId]) {
+        const article = articles[editId];
+        titleInput.value = article.title;
+        contentInput.innerHTML = article.content;
+        statusSelect.value = article.status || "draft";
+        deleteBtn.style.display = "inline-block";
+        dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
+        loadImagesInContent(contentInput);
+      }
+    }
 
-      const selection = window.getSelection();
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(img);
-      selection.removeAllRanges();
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const title = titleInput.value.trim();
+      const content = contentInput.innerHTML.trim();
+      const status = statusSelect.value;
+      if (!title || !content) return alert("すべて入力してね！");
 
-      const newRange = document.createRange();
-      newRange.setStartAfter(img);
-      newRange.setEndAfter(img);
-      selection.addRange(newRange);
-      contentInput.focus();
+      const now = new Date();
+      const dateStr = now.toISOString();
+      const id = editId || Date.now().toString();
+      const old = articles[id] || {};
+      const datePublished = old.datePublished || dateStr;
+      const dateUpdated = dateStr;
+
+      articles[id] = { id, title, content, datePublished, dateUpdated, status };
+      try {
+        localStorage.setItem("articles", JSON.stringify(articles));
+      } catch (err) {
+        alert("保存に失敗しました（容量制限の可能性）");
+        return;
+      }
+
+      alert("保存しました！");
+      location.href = status === "draft" ? "drafts.html" : "index.html";
     });
 
-    imageInput.value = "";
-  });
-
-  function formatDate(dateStr) {
-    if (!dateStr) return "不明";
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
-  }
-
-  function loadArticle() {
-    if (editId && articles[editId]) {
-      const article = articles[editId];
-      titleInput.value = article.title;
-      contentInput.innerHTML = article.content;
-      statusSelect.value = article.status || "draft";
-      deleteBtn.style.display = "inline-block";
-      dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
-      loadImagesInContent(contentInput);
-    }
-  }
-
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const title = titleInput.value.trim();
-    const content = contentInput.innerHTML.trim();
-    const status = statusSelect.value;
-    if (!title || !content) return alert("すべて入力してね！");
-
-    const now = new Date();
-    const dateStr = now.toISOString();
-    const id = editId || Date.now().toString();
-    const old = articles[id] || {};
-    const datePublished = old.datePublished || dateStr;
-    const dateUpdated = dateStr;
-
-    articles[id] = { id, title, content, datePublished, dateUpdated, status };
-    try {
-      localStorage.setItem("articles", JSON.stringify(articles));
-    } catch (err) {
-      alert("保存に失敗しました（容量制限の可能性）");
-      return;
-    }
-
-    alert("保存しました！");
-    location.href = status === "draft" ? "drafts.html" : "index.html";
-  });
-
-  deleteBtn.addEventListener("click", () => {
-    if (confirm("この記事を削除していい？")) {
-      delete articles[editId];
-      localStorage.setItem("articles", JSON.stringify(articles));
-      alert("削除しました！");
-      location.href = "index.html";
-    }
-  });
-</script>
-
+    deleteBtn.addEventListener("click", () => {
+      if (confirm("この記事を削除していい？")) {
+        delete articles[editId];
+        localStorage.setItem("articles", JSON.stringify(articles));
+        alert("削除しました！");
+        location.href = "index.html";
+      }
+    });
+  </script>
 </body>
 </html>
