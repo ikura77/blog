@@ -67,50 +67,15 @@
       border-radius: 4px;
       width: 100%;
     }
-    .btn-save {
-      background-color: #4CAF50;
-      color: white;
-    }
-    .btn-delete {
-      background-color: #f44336;
-      color: white;
-    }
-    .btn-back {
-      background-color: #9E9E9E;
-      color: white;
-    }
-    .image-preview {
-      margin-top: 1rem;
-      max-width: 100%;
-      overflow-x: auto;
-    }
-    .image-preview img {
-      width: 100%;
-      height: auto;
-      max-width: 500px;
-      margin-bottom: 1rem;
-      display: block;
-    }
+    .btn-save { background-color: #4CAF50; color: white; }
+    .btn-delete { background-color: #f44336; color: white; }
+    .btn-back { background-color: #9E9E9E; color: white; }
 
-    /* Mobile-first design adjustments */
     @media (max-width: 600px) {
-      .editor-container {
-        padding: 1rem;
-      }
-      h1 {
-        font-size: 1.2rem;
-      }
-      .content-editor {
-        font-size: 1rem;
-        height: 250px;
-      }
-      .button-group {
-        flex-direction: column;
-      }
-      button {
-        width: 100%;
-        margin-bottom: 1rem;
-      }
+      .editor-container { padding: 1rem; }
+      h1 { font-size: 1.2rem; }
+      .content-editor { height: 250px; }
+      button { margin-bottom: 1rem; }
     }
   </style>
 </head>
@@ -135,7 +100,7 @@
       </div>
       <div class="form-group">
         <label for="imageInput">画像を挿入：</label>
-        <input type="file" id="imageInput" accept="image/*" />
+        <input type="file" id="imageInput" accept="image/*" multiple />
       </div>
       <div class="button-group">
         <button type="submit" class="btn-save">保存</button>
@@ -144,23 +109,64 @@
       </div>
       <p id="dateInfo"></p>
     </form>
-
-    <div class="image-preview" id="imagePreview"></div>
   </div>
 
   <script>
+    const dbName = "ArticleImagesDB";
+    const storeName = "images";
+    let db;
+
+    // IndexedDB 初期化
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName, 1);
+        request.onerror = () => reject("DBを開けません");
+        request.onsuccess = () => {
+          db = request.result;
+          resolve();
+        };
+        request.onupgradeneeded = (e) => {
+          db = e.target.result;
+          if (!db.objectStoreNames.contains(storeName)) {
+            db.createObjectStore(storeName, { keyPath: "id" });
+          }
+        };
+      });
+    }
+
+    function saveImageToDB(id, dataURL) {
+      const tx = db.transaction(storeName, "readwrite");
+      const store = tx.objectStore(storeName);
+      store.put({ id, dataURL });
+    }
+
+    function loadImageFromDB(id) {
+      return new Promise((resolve) => {
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        const req = store.get(id);
+        req.onsuccess = () => resolve(req.result?.dataURL || null);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    function deleteImageFromDB(id) {
+      const tx = db.transaction(storeName, "readwrite");
+      const store = tx.objectStore(storeName);
+      store.delete(id);
+    }
+
     const form = document.getElementById("editorForm");
     const titleInput = document.getElementById("title");
     const contentInput = document.getElementById("content");
     const statusSelect = document.getElementById("status");
-    const saveBtn = document.querySelector(".btn-save");
     const deleteBtn = document.getElementById("deleteBtn");
     const dateInfo = document.getElementById("dateInfo");
     const imageInput = document.getElementById("imageInput");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const editId = urlParams.get('id');
-    let articles = JSON.parse(localStorage.getItem('articles') || '{}');
+    const urlParams = new URLSearchParams(location.search);
+    const editId = urlParams.get("id");
+    let articles = JSON.parse(localStorage.getItem("articles") || "{}");
 
     function formatDate(dateStr) {
       if (!dateStr) return "不明";
@@ -168,42 +174,45 @@
       return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
     }
 
-    if (editId && articles[editId]) {
-      const article = articles[editId];
-      titleInput.value = article.title;
-      contentInput.innerHTML = article.content;
-      statusSelect.value = article.status || "draft";
-      deleteBtn.style.display = "inline-block";
-      dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
-    }
-
-    imageInput.addEventListener('change', (event) => {
-      const files = event.target.files;
-      if (!files.length) return;
-
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const imageSrc = e.target.result;
-          insertImageAtCursor(imageSrc);
-        };
-        reader.readAsDataURL(file);
-      });
-
-      imageInput.value = ''; // Reset input field
-    });
-
     function insertImageAtCursor(imageSrc) {
-      const imageTag = `<img src="${imageSrc}" alt="画像" style="max-width:100%; height:auto;" loading="lazy" />`;
+      const img = document.createElement("img");
+      img.src = imageSrc;
+      img.alt = "画像";
+      img.style.maxWidth = "100%";
+      img.style.height = "auto";
       const range = window.getSelection().getRangeAt(0);
       range.deleteContents();
-      const imageNode = document.createElement('div');
-      imageNode.innerHTML = imageTag;
-      range.insertNode(imageNode.firstChild);
+      range.insertNode(img);
       contentInput.focus();
     }
 
-    form.addEventListener("submit", function(e) {
+    imageInput.addEventListener("change", async (event) => {
+      const files = event.target.files;
+      for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const dataURL = e.target.result;
+          const imageId = `${Date.now()}-${Math.random()}`;
+          saveImageToDB(imageId, dataURL);
+          insertImageAtCursor(dataURL);
+        };
+        reader.readAsDataURL(file);
+      }
+      imageInput.value = "";
+    });
+
+    async function loadArticle() {
+      if (editId && articles[editId]) {
+        const article = articles[editId];
+        titleInput.value = article.title;
+        contentInput.innerHTML = article.content;
+        statusSelect.value = article.status || "draft";
+        deleteBtn.style.display = "inline-block";
+        dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
+      }
+    }
+
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
       const title = titleInput.value.trim();
       const content = contentInput.innerHTML.trim();
@@ -213,24 +222,29 @@
       const now = new Date();
       const dateStr = now.toISOString();
       const id = editId || Date.now().toString();
-      const oldArticle = articles[id] || {};
-      const datePublished = oldArticle.datePublished || dateStr;
+      const old = articles[id] || {};
+      const datePublished = old.datePublished || dateStr;
       const dateUpdated = dateStr;
 
       articles[id] = { id, title, content, datePublished, dateUpdated, status };
-      localStorage.setItem('articles', JSON.stringify(articles));
-
+      localStorage.setItem("articles", JSON.stringify(articles));
       alert("保存しました！");
       location.href = status === "draft" ? "drafts.html" : "index.html";
     });
 
-    deleteBtn.addEventListener("click", function() {
+    deleteBtn.addEventListener("click", () => {
       if (confirm("この記事を削除していい？")) {
         delete articles[editId];
-        localStorage.setItem('articles', JSON.stringify(articles));
+        localStorage.setItem("articles", JSON.stringify(articles));
+        deleteImageFromDB(editId);
         alert("削除しました！");
         location.href = "index.html";
       }
+    });
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      await initDB();
+      await loadArticle();
     });
   </script>
 </body>
