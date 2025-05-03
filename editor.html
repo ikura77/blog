@@ -166,19 +166,25 @@
         selection.addRange(newRange);
         
         contentInput.focus();
+        forceSubmit();
       };
       reader.readAsDataURL(file);
       imageInput.value = "";
     });
 
+    function forceSubmit() {
+      // 手動でフォームのsubmitイベントを発生させます
+      const submitButton = form.querySelector("button[type='submit']");
+      submitButton.click();
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      // 画像挿入が完了していない場合、保存処理を待機
-      const imageInsertionComplete = imageInput.value === ""; // 画像挿入が完了したかどうか
-
-      if (!imageInsertionComplete) {
-        alert("画像の読み込みが完了していません！");
+      // 画像が挿入されたかどうかを確認
+      const images = contentInput.querySelectorAll('img');
+      if (images.length === 0) {
+        alert("画像が挿入されていません！");
         return;
       }
 
