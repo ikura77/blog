@@ -31,7 +31,7 @@
       display: block;
       margin-bottom: 0.5rem;
     }
-    input[type="text"], textarea, select {
+    input[type="text"], select {
       width: 100%;
       padding: 0.8rem;
       font-size: 1rem;
@@ -39,8 +39,17 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
-    textarea {
+    .content-editor {
+      width: 100%;
       min-height: 200px;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 1rem;
+      background-color: #fafafa;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
     }
     .button-group {
       margin-top: 1rem;
@@ -113,7 +122,7 @@
       </div>
       <div class="form-group">
         <label for="content">本文：</label>
-        <textarea id="content" required></textarea>
+        <div id="content" class="content-editor" contenteditable="true"></div>
       </div>
       <div class="form-group">
         <label for="status">状態：</label>
@@ -161,14 +170,14 @@
 
     function renderArticlePreview() {
       const title = titleInput.value;
-      const content = contentInput.value;
+      const content = contentInput.innerHTML;
       document.getElementById("imagePreview").innerHTML = `<h2>${title}</h2><p>${content}</p>`;
     }
 
     if (editId && articles[editId]) {
       const article = articles[editId];
       titleInput.value = article.title;
-      contentInput.value = article.content;
+      contentInput.innerHTML = article.content;
       statusSelect.value = article.status || "draft";
       deleteBtn.style.display = "inline-block";
       dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
@@ -191,21 +200,17 @@
     });
 
     function insertImageAtCursor(imageSrc) {
-      const cursorPos = contentInput.selectionStart;
-      const content = contentInput.value;
-      const beforeText = content.substring(0, cursorPos);
-      const afterText = content.substring(cursorPos);
       const imageTag = `<img src="${imageSrc}" alt="画像" style="max-width:100%; height:auto;" />`;
-
-      contentInput.value = beforeText + imageTag + afterText;
+      const range = window.getSelection().getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createElement('div').innerHTML = imageTag);
       contentInput.focus();
-      contentInput.selectionStart = contentInput.selectionEnd = cursorPos + imageTag.length;
     }
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
       const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
+      const content = contentInput.innerHTML.trim();
       const status = statusSelect.value;
       if (!title || !content) return alert("すべて入力してね！");
 
@@ -234,10 +239,6 @@
 
     previewBtn.addEventListener("click", renderArticlePreview);
 
-    contentInput.addEventListener("input", () => {
-      contentInput.style.height = "auto";
-      contentInput.style.height = contentInput.scrollHeight + "px";
-    });
   </script>
 </body>
 </html>
