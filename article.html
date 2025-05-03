@@ -141,11 +141,23 @@ function formatDate(dateStr) {
 }
 
 if (article && article.status === "published") {
-  articleContent.innerHTML = `
-    <h1>${article.title}</h1>
-    <time>公開日: ${formatDate(article.datePublished)}</time>
-    <div>${article.content}</div>
-  `;
+  // 記事タイプに基づく表示
+  if (article.type === "summary") {
+    // 「一言記事」の表示
+    articleContent.innerHTML = `
+      <h1>${article.title}</h1>
+      <time>公開日: ${formatDate(article.datePublished)}</time>
+      <p>📝 ${article.text || article.summary || "内容なし"}</p>
+    `;
+  } else {
+    // 通常記事の表示
+    articleContent.innerHTML = `
+      <h1>${article.title}</h1>
+      <time>公開日: ${formatDate(article.datePublished)}</time>
+      <div>${article.content}</div>
+    `;
+  }
+
   deleteBtn.style.display = "inline-block";
   editBtn.href = `editor.html?id=${id}`;
   editBtn.style.display = "inline-block";
