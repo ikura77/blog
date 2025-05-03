@@ -111,6 +111,17 @@
       border-radius: 8px;
       cursor: pointer;
     }
+    .image-preview {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .image-preview img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -123,9 +134,10 @@
       <option value="draft">下書きにする</option>
     </select>
     <div class="image-upload">
-      <label for="imageInput">画像を選択</label>
-      <input type="file" id="imageInput" accept="image/*" />
+      <label for="imageInput">画像を選択 (JPEGのみ)</label>
+      <input type="file" id="imageInput" accept="image/jpeg" multiple />
     </div>
+    <div id="imagePreview" class="image-preview"></div>
     <button type="submit" id="saveBtn">保存する</button>
     <button type="button" id="deleteBtn" style="display:none;">削除する</button>
   </form>
@@ -144,11 +156,12 @@
     const deleteBtn = document.getElementById("deleteBtn");
     const dateInfo = document.getElementById("dateInfo");
     const imageInput = document.getElementById("imageInput");
+    const imagePreview = document.getElementById("imagePreview");
 
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
     let articles = JSON.parse(localStorage.getItem('articles') || '{}');
-    let imageUrl = '';
+    let imageUrls = [];
 
     function formatDate(dateStr) {
       if (!dateStr) return "不明";
@@ -161,34 +174,37 @@
       titleInput.value = article.title;
       contentInput.value = article.content;
       statusSelect.value = article.status || "draft";
-      imageUrl = article.imageUrl || '';
+      imageUrls = article.imageUrls || [];
       deleteBtn.style.display = "inline-block";
       dateInfo.innerText = `公開日: ${formatDate(article.datePublished)} / 更新日: ${formatDate(article.dateUpdated)}`;
+      updateImagePreview();
     }
 
     imageInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          imageUrl = e.target.result;
-          insertImageAtCursor(imageUrl);
-        };
-        reader.readAsDataURL(file);
+      const files = event.target.files;
+      imageUrls = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type === 'image/jpeg') {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            imageUrls.push(e.target.result);
+            updateImagePreview();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          alert("JPEG画像のみ選択してください。");
+        }
       }
     });
 
-    function insertImageAtCursor(imageSrc) {
-      const cursorPos = contentInput.selectionStart;
-      const content = contentInput.value;
-      const beforeText = content.substring(0, cursorPos);
-      const afterText = content.substring(cursorPos, content.length);
-      const imageTag = `<img src="${imageSrc}" alt="挿入画像" style="max-width:100%; height:auto;" />`;
-
-      contentInput.value = beforeText + imageTag + afterText;
-      contentInput.focus();
-      contentInput.selectionStart = cursorPos + imageTag.length;
-      contentInput.selectionEnd = cursorPos + imageTag.length;
+    function updateImagePreview() {
+      imagePreview.innerHTML = '';
+      imageUrls.forEach(url => {
+        const img = document.createElement('img');
+        img.src = url;
+        imagePreview.appendChild(img);
+      });
     }
 
     form.addEventListener("submit", function(e) {
@@ -205,7 +221,7 @@
       const datePublished = oldArticle.datePublished || dateStr;
       const dateUpdated = dateStr;
 
-      articles[id] = { id, title, content, datePublished, dateUpdated, status, imageUrl };
+      articles[id] = { id, title, content, datePublished, dateUpdated, status, imageUrls };
       localStorage.setItem('articles', JSON.stringify(articles));
 
       alert("保存しました！");
