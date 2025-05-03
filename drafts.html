@@ -122,10 +122,10 @@ const drafts = Object.values(articles).filter(article => article.status === "dra
 if (drafts.length === 0) {
   draftsList.innerHTML = "<div id='emptyMessage'>現在、下書きはありません。</div>";
 } else {
-  drafts.sort((a, b) => b.id - a.id).forEach(article => {
+  drafts.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(article => {
     const card = document.createElement("div");
     card.className = "card";
-    const articleLink = `article.html?id=${article.id}`;  // 編集リンクを作成
+    const articleLink = `editor.html?id=${article.id}`;  // 編集リンクを作成
 
     card.innerHTML = `
       <div>
