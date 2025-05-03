@@ -103,7 +103,7 @@
         <input type="file" id="imageInput" accept="image/*" />
       </div>
       <div class="button-group">
-        <button type="submit" class="btn-save">保存</button>
+        <button type="submit" class="btn-save" id="saveButton">保存</button>
         <button type="button" id="deleteBtn" class="btn-delete" style="display: none;">削除</button>
         <button type="button" class="btn-back" onclick="window.location.href='index.html'">トップページへ戻る</button>
       </div>
@@ -119,6 +119,7 @@
     const deleteBtn = document.getElementById("deleteBtn");
     const dateInfo = document.getElementById("dateInfo");
     const imageInput = document.getElementById("imageInput");
+    const saveButton = document.getElementById("saveButton");
 
     const urlParams = new URLSearchParams(location.search);
     const editId = urlParams.get("id");
@@ -141,18 +142,18 @@
       }
     }
 
-    // 画像を挿入
-    imageInput.addEventListener("change", function(event) {
+    imageInput.addEventListener("change", async (event) => {
       const file = event.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
+        const dataURL = e.target.result;
         const img = document.createElement("img");
-        img.src = e.target.result;
+        img.src = dataURL;
+        img.alt = "画像";
         img.style.maxWidth = "100%";
         img.style.height = "auto";
-        img.alt = "挿入された画像";
 
         const selection = window.getSelection();
         const range = selection.getRangeAt(0);
@@ -164,21 +165,21 @@
         newRange.setEndAfter(img);
         selection.removeAllRanges();
         selection.addRange(newRange);
-
+        
         contentInput.focus();
+        saveButton.disabled = false;  // 保存ボタンを有効にする
       };
-      reader.readAsDataURL(file); // 画像をBase64形式で読み込む
-      imageInput.value = ""; // 入力フィールドをリセット
+      reader.readAsDataURL(file);
+      imageInput.value = "";
     });
 
-    // フォーム送信時に内容を保存
-    form.addEventListener("submit", function(e) {
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
 
       const title = titleInput.value.trim();
       const content = contentInput.innerHTML.trim();
       const status = statusSelect.value;
-      if (!title || !content) return alert("タイトルと本文を入力してください");
+      if (!title || !content) return alert("すべて入力してね！");
 
       const now = new Date();
       const dateStr = now.toISOString();
@@ -189,14 +190,12 @@
 
       articles[id] = { id, title, content, datePublished, dateUpdated, status };
       localStorage.setItem("articles", JSON.stringify(articles));
-
       alert("保存しました！");
       location.href = status === "draft" ? "drafts.html" : "index.html";
     });
 
-    // 削除ボタン
     deleteBtn.addEventListener("click", () => {
-      if (confirm("この記事を削除しますか？")) {
+      if (confirm("この記事を削除していい？")) {
         delete articles[editId];
         localStorage.setItem("articles", JSON.stringify(articles));
         alert("削除しました！");
