@@ -50,6 +50,13 @@
       font-size: 1.1em;
       color: var(--text-color); /* ダークカラー */
     }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
     #buttons {
       text-align: center;
       margin: 40px 0;
@@ -133,11 +140,16 @@ function formatDate(dateStr) {
   return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+// 記事の本文中に画像を挿入
+function renderContent(content) {
+  return content.replace(/<img src="([^"]+)" alt="([^"]+)">/g, '<img src="$1" alt="$2">');
+}
+
 if (article && article.status === "published") {
   articleContent.innerHTML = `
     <h1>${article.title}</h1>
     <time>公開日: ${formatDate(article.datePublished)}</time>
-    <p>${article.content}</p>
+    <p>${renderContent(article.content)}</p>
   `;
   deleteBtn.style.display = "inline-block";
   editBtn.href = `editor.html?id=${id}`;
